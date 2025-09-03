@@ -71,21 +71,26 @@ function VerifierPage() {
     stopScanning()
     
     try {
+      console.log('Raw QR data:', qrData)
+      
       let parsedData
       try {
         parsedData = JSON.parse(qrData)
+        console.log('Parsed QR data:', parsedData)
       } catch (e) {
-        throw new Error('Invalid QR code format')
+        console.error('JSON parse error:', e)
+        throw new Error('Invalid QR code format - not valid JSON')
       }
 
       if (parsedData.mode === 'offline') {
-        // Offline verification
+        console.log('Processing offline credential')
         await verifyOfflineCredential(parsedData)
       } else if (parsedData.token) {
-        // Online verification
+        console.log('Processing online credential')
         await verifyOnlineCredential(parsedData.token)
       } else {
-        throw new Error('Unknown credential format')
+        console.error('Unknown credential format:', parsedData)
+        throw new Error('Unknown credential format - missing mode or token')
       }
     } catch (error) {
       console.error('Verification error:', error)
@@ -100,11 +105,14 @@ function VerifierPage() {
 
   const verifyOfflineCredential = async (qrData) => {
     try {
+      console.log('Verifying offline credential:', qrData)
+      
       // Client-side offline verification
       const { signature, publicKey, ...dataToVerify } = qrData
       
       // Check expiry
       if (Date.now() > dataToVerify.expiresAt) {
+        console.log('Credential expired:', new Date(dataToVerify.expiresAt))
         setVerificationResult({
           isValid: false,
           errors: ['Credential has expired'],
@@ -115,30 +123,36 @@ function VerifierPage() {
 
       // For demonstration, we'll call the backend to verify signature
       // In a real offline scenario, this would be done client-side
+      console.log('Sending verification request to backend...')
       const response = await axios.post('http://localhost:5000/api/credentials/verify', {
         scannedData: qrData
       })
 
+      console.log('Backend verification response:', response.data)
       setVerificationResult(response.data.verification)
     } catch (error) {
+      console.error('Offline verification error:', error)
       setVerificationResult({
         isValid: false,
-        errors: ['Failed to verify offline credential']
+        errors: [`Failed to verify offline credential: ${error.message}`]
       })
     }
   }
 
   const verifyOnlineCredential = async (token) => {
     try {
+      console.log('Verifying online credential with token:', token)
       const response = await axios.post('http://localhost:5000/api/credentials/verify', {
         token: token
       })
 
+      console.log('Online verification response:', response.data)
       setVerificationResult(response.data.verification)
     } catch (error) {
+      console.error('Online verification error:', error)
       setVerificationResult({
         isValid: false,
-        errors: ['Failed to verify online credential']
+        errors: [`Failed to verify online credential: ${error.message}`]
       })
     }
   }
@@ -222,7 +236,7 @@ function VerifierPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 text-white">
       <button 
         className="absolute top-8 left-8 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg cursor-pointer transition-all duration-300 hover:bg-white/20 flex items-center gap-2"
         onClick={() => navigate('/generate-qr')}

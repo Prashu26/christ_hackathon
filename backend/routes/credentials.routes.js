@@ -175,10 +175,22 @@ router.post('/verify', (req, res) => {
 
 // Get public key for offline verification
 router.get('/public-key', (req, res) => {
-  res.json({
-    success: true,
-    publicKey: process.env.PUBLIC_KEY.replace(/\\n/g, '\n')
-  });
+  try {
+    const publicKey = process.env.PUBLIC_KEY ? 
+      process.env.PUBLIC_KEY.replace(/\\n/g, '\n') : 
+      cryptoUtils.publicKey;
+    
+    res.json({
+      success: true,
+      publicKey: publicKey
+    });
+  } catch (error) {
+    console.error('Error getting public key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get public key'
+    });
+  }
 });
 
 module.exports = router;
