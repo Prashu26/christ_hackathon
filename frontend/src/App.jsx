@@ -6,9 +6,10 @@ import HomePage from "./pages/HomePage"; // Example
 import LoginWithOtp from "./pages/LoginWithOtp"; // 1. Import your new page
 import Profile from "./pages/profile"; // Import Profile
 import FeaturesPage from "./pages/boilerplate/feautres";
-import HowItWorksPage from "./pages/boilerplate/howItWorks";
+import Education from "./pages/boilerplate/education";
 import ContactSection from "./pages/boilerplate/contact";
-import Navbar from "./pages/navbar"; // Import Navbar
+import Navbar from "./pages/navbar";
+import DemoPage from "./pages/boilerplate/demo";    
 
 // QR Generation System Pages
 import GenerateQR from "./pages/generateQR";
@@ -34,7 +35,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
 
         <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/education" element={<Education />} />
+        <Route path="/demo" element={<DemoPage />} />
         <Route path="/contact" element={<ContactSection />} />
 
         {/* QR Generation System Routes */}

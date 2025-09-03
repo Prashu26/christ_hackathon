@@ -34,13 +34,13 @@ const Navbar = () => {
               Features
             </Link>
             <Link
-              to="/how-it-works"
+              to="/education"
               className="text-gray-700 hover:text-blue-600 transition-colors"
             >
-              How It Works
+              Education
             </Link>
             <a
-              href="#demo"
+              href="/demo"
               className="text-gray-700 hover:text-blue-600 transition-colors"
             >
               Demo
@@ -79,10 +79,10 @@ const Navbar = () => {
             <Link to="/features" className="text-gray-700 hover:text-blue-600">
               Features
             </Link>
-            <Link to="/how-it-works" className="text-gray-700 hover:text-blue-600">
-              How It Works
+            <Link to="/education" className="text-gray-700 hover:text-blue-600">
+              Education
             </Link>
-            <a href="#demo" className="text-gray-700 hover:text-blue-600">
+            <a href="/demo" className="text-gray-700 hover:text-blue-600">
               Demo
             </a>
             <Link to="/contact" className="text-gray-700 hover:text-blue-600">
