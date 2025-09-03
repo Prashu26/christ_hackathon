@@ -8,14 +8,19 @@ const port = process.env.PORT || 5000;
 require("dotenv").config();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Import routes
 const digilockerRoutes = require("./routes/auth.routes");
+const credentialsRoutes = require("./routes/credentials.routes");
 
 // Use the routes
 app.use("/api/v1/users", digilockerRoutes);
+app.use("/api/credentials", credentialsRoutes);
 
 app.listen(port, () => {
   console.log(` server is running at http://localhost:${port}`);

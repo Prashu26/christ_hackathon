@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
   Eye, 
@@ -33,9 +34,12 @@ import {
   Layers,
   Network
 } from 'lucide-react';
+import QRVerificationModal from '../../components/QRVerificationModal';
 
 const FeaturesPage = () => {
+  const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [demoStates, setDemoStates] = useState({
     privacy: { visible: false, animating: false },
     offline: { status: 'online', syncing: false },
@@ -163,6 +167,10 @@ const FeaturesPage = () => {
       benefit: 'Skip long queues and enjoy hassle-free travel'
     }
   ];
+
+  const handleQRDemo = () => {
+    navigate('/generate-qr');
+  };
 
   // Privacy Demo
   const togglePrivacyDemo = () => {
@@ -477,7 +485,10 @@ const FeaturesPage = () => {
                 <Icon className="w-12 h-12 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
                 <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                 <p className="text-gray-400 mb-4">{feature.description}</p>
-                <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium">
+                <button 
+                  onClick={feature.demo === 'qr' ? handleQRDemo : undefined}
+                  className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium"
+                >
                   <Play className="w-4 h-4" />
                   Try Demo
                 </button>
@@ -533,6 +544,12 @@ const FeaturesPage = () => {
           </div>
         </div>
       </div>
+
+      {/* QR Verification Modal */}
+      <QRVerificationModal 
+        isOpen={showQRModal} 
+        onClose={() => setShowQRModal(false)} 
+      />
     </div>
   );
 };
