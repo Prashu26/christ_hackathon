@@ -42,7 +42,7 @@ const LoginWithOtp = () => {
       toast.success("Verification successful!");
       console.log("Received mock DigiLocker data:", digilockerData);
 
-      navigate("/", {
+      navigate("/home", {
         state: { verifiedData: digilockerData },
       });
     } catch (error) {
