@@ -1,7 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import SimpleNavbar from "./components/SimpleNavbar";
 
 // Import your pages
 import LandingPage from "./pages/landingpage";
+import Admin from "./pages/admin";
+import Verify from "./components/verify";
 import HomePage from "./pages/HomePage"; // Example
 import LoginWithOtp from "./pages/LoginWithOtp"; // 1. Import your new page
 import Profile from "./pages/profile"; // Import Profile
@@ -9,24 +12,31 @@ import FeaturesPage from "./pages/boilerplate/feautres";
 import Education from "./pages/boilerplate/education";
 import ContactSection from "./pages/boilerplate/contact";
 import Navbar from "./pages/navbar";
-import DemoPage from "./pages/boilerplate/demo";    
+import DemoPage from "./pages/boilerplate/demo";   
+import Signup from "./pages/signup";
 
 // QR Generation System Pages
 import GenerateQR from "./pages/generateQR";
 import UserPage from "./pages/UserPage";
 import VerifierPage from "./pages/VerifierPage";
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isSignupPage = location.pathname === '/';
+
   return (
     <>
-    
-    <Router>
-      <Navbar />
+      {isSignupPage ? <SimpleNavbar /> : <Navbar />}
       <Routes>
-        <Route path="/" element={<LandingPage/>} />
+        <Route path="/" element={<Signup/>} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/verify" element={<Verify />} />
 
         {/* 2. Add the new route for the OTP login page */}
         <Route path="/login-otp" element={<LoginWithOtp />} />
+
+        {/* Add route for Landing Page */}
+        <Route path="/landing" element={<LandingPage />} />
 
         {/* Add route for HomePage */}
         <Route path="/home" element={<HomePage />} />
@@ -47,8 +57,15 @@ function App() {
         {/* Add your other routes here */}
       </Routes>
       {/* Your Footer can go here */}
-    </Router>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

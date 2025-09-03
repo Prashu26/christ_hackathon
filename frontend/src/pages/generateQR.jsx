@@ -41,12 +41,12 @@ function GenerateQR() {
           </p>
         </div>
         
-        <div 
+        <div
           className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 hover:bg-white/20 min-w-[280px]"
           onClick={(e) => {
             e.preventDefault();
-            console.log('Verifier option clicked - navigating to /verifier');
-            navigate('/verifier');
+            console.log('Verifier option clicked - navigating to /verify first');
+            navigate('/verify');
           }}
         >
           <div className="text-6xl mb-4">
