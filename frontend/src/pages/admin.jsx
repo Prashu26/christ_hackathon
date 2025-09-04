@@ -187,25 +187,25 @@ const Admin = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Sidebar */}
-      <div className="w-[28rem] bg-white shadow-xl p-6 flex flex-col">
+      <div className="w-[28rem] bg-gray-800 shadow-2xl p-6 flex flex-col border-r border-gray-700">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-32 h-32 rounded-full overflow-hidden shadow-md">
+          <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg ring-4 ring-blue-500/20 hover:ring-blue-500/40 transition-all duration-300">
             <img
-              src={userData.photo || "https://via.placeholder.com/128"}
+              src={"/default.svg"}
               alt="Admin"
               className="w-full h-full object-cover"
             />
           </div>
-          <h2 className="mt-4 text-2xl font-bold text-gray-800">{userData.name || "Admin Name"}</h2>
-          <p className="text-gray-500">System Administrator</p>
+          <h2 className="mt-4 text-2xl font-bold text-white">{userData.name || "Admin Name"}</h2>
+          <p className="text-blue-400 font-medium">System Administrator</p>
         </div>
 
         {/* Sensitive Info Card */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Sensitive Information</h3>
-          <div className="space-y-4 text-gray-700">
+        <div className="bg-gray-700 rounded-xl shadow-lg p-6 mb-6 border border-gray-600 hover:bg-gray-650 transition-colors duration-200">
+          <h3 className="text-lg font-semibold mb-4 text-white">Sensitive Information</h3>
+          <div className="space-y-4 text-gray-300">
             {/* Aadhaar */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -269,35 +269,35 @@ const Admin = () => {
         </div>
 
         {/* Requests Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Requests</h3>
+        <div className="bg-gray-700 rounded-xl shadow-lg p-6 border border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-white">Requests</h3>
           <div className="flex flex-col space-y-2">
             <button
               onClick={() => setActiveTab("verifiers")}
-              className={`w-full text-left py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`w-full text-left py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === "verifiers"
-                  ? "bg-blue-500 text-white shadow"
-                  : "text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
+                  : "text-gray-300 hover:bg-gray-600 hover:text-white"
               }`}
             >
               Verifier Requests
             </button>
             <button
               onClick={() => setActiveTab("loans")}
-              className={`w-full text-left py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`w-full text-left py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === "loans"
-                  ? "bg-green-500 text-white shadow"
-                  : "text-gray-700 hover:bg-gray-200"
+                  ? "bg-green-600 text-white shadow-lg ring-2 ring-green-400"
+                  : "text-gray-300 hover:bg-gray-600 hover:text-white"
               }`}
             >
               Loan Requests
             </button>
             <button
               onClick={() => setActiveTab("insurance")}
-              className={`w-full text-left py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`w-full text-left py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === "insurance"
-                  ? "bg-purple-500 text-white shadow"
-                  : "text-gray-700 hover:bg-gray-200"
+                  ? "bg-purple-600 text-white shadow-lg ring-2 ring-purple-400"
+                  : "text-gray-300 hover:bg-gray-600 hover:text-white"
               }`}
             >
               Insurance Requests
@@ -313,13 +313,13 @@ const Admin = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white rounded-2xl shadow-xl p-8 mb-8"
+          className="bg-gray-800 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-700"
         >
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-            <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
+            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+            <div className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors duration-200">
               <img
-                src={userData.photo || "https://via.placeholder.com/20"}
+                src={userData.photo || "/default.svg"}
                 alt="Admin"
                 className="w-5 h-5 rounded-full object-cover"
               />
@@ -335,27 +335,27 @@ const Admin = () => {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
         >
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-gray-600">Verifier Requests</p>
-            <p className="text-3xl font-bold text-blue-600">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:bg-gray-750 transition-colors duration-200">
+            <p className="text-gray-400">Verifier Requests</p>
+            <p className="text-3xl font-bold text-blue-400">
               {pendingRequests.length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-gray-600">Loan Requests</p>
-            <p className="text-3xl font-bold text-green-600">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:bg-gray-750 transition-colors duration-200">
+            <p className="text-gray-400">Loan Requests</p>
+            <p className="text-3xl font-bold text-green-400">
               {pendingLoans.length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-gray-600">Insurance Requests</p>
-            <p className="text-3xl font-bold text-purple-600">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:bg-gray-750 transition-colors duration-200">
+            <p className="text-gray-400">Insurance Requests</p>
+            <p className="text-3xl font-bold text-purple-400">
               {pendingInsurance.length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-gray-600">Total Pending</p>
-            <p className="text-3xl font-bold text-red-600">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:bg-gray-750 transition-colors duration-200">
+            <p className="text-gray-400">Total Pending</p>
+            <p className="text-3xl font-bold text-red-400">
               {pendingRequests.length +
                 pendingLoans.length +
                 pendingInsurance.length}
@@ -371,36 +371,36 @@ const Admin = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700"
           >
             {activeTab === "verifiers" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-blue-600">Verifier Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-blue-400">Verifier Requests</h2>
                 {pendingRequests.length === 0 ? (
-                  <p className="text-gray-500">No pending verifier requests.</p>
+                  <p className="text-gray-400">No pending verifier requests.</p>
                 ) : (
                   pendingRequests.map((req) => (
                     <motion.div
                       key={req.requestId}
-                      className="bg-gray-50 p-6 rounded-lg shadow mb-4"
+                      className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
                       variants={cardVariants}
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-gray-800">{req.email}</p>
-                      <p className="text-gray-600">Request ID: {req.requestId}</p>
+                      <p className="text-lg font-semibold text-white">{req.email}</p>
+                      <p className="text-gray-400">Request ID: {req.requestId}</p>
                       <div className="mt-4 flex space-x-4">
                         <button
                           onClick={() => handleApprove(req.requestId, req.email)}
                           disabled={isLoading}
-                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Approving..." : "Approve"}
                         </button>
                         <button
                           onClick={() => handleReject(req.requestId, req.email)}
                           disabled={isLoading}
-                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Rejecting..." : "Reject"}
                         </button>
@@ -413,32 +413,32 @@ const Admin = () => {
 
             {activeTab === "loans" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-green-600">Loan Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-green-400">Loan Requests</h2>
                 {pendingLoans.length === 0 ? (
-                  <p className="text-gray-500">No pending loan requests.</p>
+                  <p className="text-gray-400">No pending loan requests.</p>
                 ) : (
                   pendingLoans.map((req) => (
                     <motion.div
                       key={req.requestId}
-                      className="bg-gray-50 p-6 rounded-lg shadow mb-4"
+                      className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
                       variants={cardVariants}
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-gray-800">Loan Request ID: {req.requestId}</p>
-                      <p className="text-gray-600">Amount: {req.amount || "N/A"}</p>
+                      <p className="text-lg font-semibold text-white">Loan Request ID: {req.requestId}</p>
+                      <p className="text-gray-400">Amount: {req.amount || "N/A"}</p>
                       <div className="mt-4 flex space-x-4">
                         <button
                           onClick={() => handleApproveLoan(req.requestId)}
                           disabled={isLoading}
-                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Approving..." : "Approve"}
                         </button>
                         <button
                           onClick={() => handleRejectLoan(req.requestId)}
                           disabled={isLoading}
-                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Rejecting..." : "Reject"}
                         </button>
@@ -451,32 +451,32 @@ const Admin = () => {
 
             {activeTab === "insurance" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-purple-600">Insurance Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-purple-400">Insurance Requests</h2>
                 {pendingInsurance.length === 0 ? (
-                  <p className="text-gray-500">No pending insurance requests.</p>
+                  <p className="text-gray-400">No pending insurance requests.</p>
                 ) : (
                   pendingInsurance.map((req) => (
                     <motion.div
                       key={req.requestId}
-                      className="bg-gray-50 p-6 rounded-lg shadow mb-4"
+                      className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
                       variants={cardVariants}
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-gray-800">Insurance Request ID: {req.requestId}</p>
-                      <p className="text-gray-600">Type: {req.type || "N/A"}</p>
+                      <p className="text-lg font-semibold text-white">Insurance Request ID: {req.requestId}</p>
+                      <p className="text-gray-400">Type: {req.type || "N/A"}</p>
                       <div className="mt-4 flex space-x-4">
                         <button
                           onClick={() => handleApproveInsurance(req.requestId)}
                           disabled={isLoading}
-                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Approving..." : "Approve"}
                         </button>
                         <button
                           onClick={() => handleRejectInsurance(req.requestId)}
                           disabled={isLoading}
-                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors duration-200"
                         >
                           {isLoading ? "Rejecting..." : "Reject"}
                         </button>
