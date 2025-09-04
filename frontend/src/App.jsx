@@ -19,6 +19,9 @@ import Signup from "./pages/signup";
 import GenerateQR from "./pages/generateQR";
 import UserPage from "./pages/UserPage";
 import VerifierPage from "./pages/VerifierPage";
+import LoanPage from './pages/LoanPage'
+import InsurancePage from './pages/InsurancePage'
+import StoragePage from './pages/StoragePage'
 
 function AppContent() {
   const location = useLocation();
@@ -53,6 +56,9 @@ function AppContent() {
         <Route path="/generate-qr" element={<GenerateQR />} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/verifier" element={<VerifierPage />} />
+        <Route path="/loan" element={<LoanPage />} />
+        <Route path="/insurance" element={<InsurancePage />} />
+        <Route path="/storage" element={<StoragePage />} />
 
         {/* Add your other routes here */}
       </Routes>

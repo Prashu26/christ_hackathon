@@ -11,6 +11,9 @@ const sendEmail = async (options) => {
       user: process.env.SMTP_USER, // Must be SMTP_USER
       pass: process.env.SMTP_PASSWORD, // Must be SMTP_PASSWORD
     },
+    tls: {
+      rejectUnauthorized: false // Accept self-signed certificates
+    }
   });
 
   const mailOptions = {

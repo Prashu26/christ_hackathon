@@ -7,8 +7,6 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = process.env.PORT || 5000;
 
-require("dotenv").config();
-
 // Middleware
 app.use(
   cors({
@@ -23,15 +21,23 @@ app.use(
 );
 app.use(express.json());
 app.use(bodyParser.json());
+
+// Connect to MongoDB
 connectDB();
 
 // Import routes
 const digilockerRoutes = require("./routes/auth.routes");
 const credentialsRoutes = require("./routes/credentials.routes");
+const insuranceRoutes = require("./routes/insurance.routes");
+const loanRoutes = require("./routes/loans.routes");
+const storageRoutes = require("./routes/storage.routes");
 
 // Use the routes
 app.use("/api/v1/users", digilockerRoutes);
 app.use("/api/credentials", credentialsRoutes);
+app.use("/api/loans", loanRoutes);
+app.use("/api/insurance", insuranceRoutes);
+app.use("/api/storage", storageRoutes);
 
 app.listen(port, () => {
   console.log(` server is running at http://localhost:${port}`);

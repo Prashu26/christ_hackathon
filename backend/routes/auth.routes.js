@@ -133,4 +133,181 @@ router.post("/reject-verifier", async (req, res) => {
   }
 });
 
+// GET: Fetch all pending loan requests
+router.get("/pending-loans", async (req, res) => {
+  try {
+    const users = await User.find({ "loanRequests.status": "pending" });
+    let pendingRequests = [];
+
+    users.forEach((user) => {
+      user.loanRequests.forEach((req) => {
+        if (req.status === "pending") {
+          pendingRequests.push({
+            requestId: req.requestId,
+            userId: user._id,
+            name: user.name,
+            email: user.email,
+            loanType: req.loanType,
+            amount: req.amount,
+            purpose: req.purpose,
+            income: req.income,
+            employmentType: req.employmentType,
+            documents: req.documents,
+            submittedAt: req.submittedAt,
+          });
+        }
+      });
+    });
+
+    res.json(pendingRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error fetching pending loan requests" });
+  }
+});
+
+// GET: Fetch all pending insurance requests
+router.get("/pending-insurance", async (req, res) => {
+  try {
+    const users = await User.find({ "insuranceRequests.status": "pending" });
+    let pendingRequests = [];
+
+    users.forEach((user) => {
+      user.insuranceRequests.forEach((req) => {
+        if (req.status === "pending") {
+          pendingRequests.push({
+            requestId: req.requestId,
+            userId: user._id,
+            name: user.name,
+            email: user.email,
+            insuranceType: req.insuranceType,
+            coverage: req.coverage,
+            premium: req.premium,
+            personalInfo: req.personalInfo,
+            documents: req.documents,
+            submittedAt: req.submittedAt,
+          });
+        }
+      });
+    });
+
+    res.json(pendingRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error fetching pending insurance requests" });
+  }
+});
+
+// POST: Approve loan request
+router.post("/approve-loan", async (req, res) => {
+  const { requestId, adminNotes } = req.body;
+
+  try {
+    const user = await User.findOne({ "loanRequests.requestId": requestId });
+    if (!user) return res.status(404).json({ message: "Loan request not found" });
+
+    const request = user.loanRequests.find(req => req.requestId === requestId);
+    request.status = "approved";
+    request.processedAt = new Date();
+    request.adminNotes = adminNotes || "";
+
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: "Loan Application Approved - TrustPass",
+      text: `Congratulations! Your loan application for ₹${request.amount} has been approved. You will receive the funds shortly.`,
+    });
+
+    res.json({ message: "Loan approved successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to approve loan" });
+  }
+});
+
+// POST: Reject loan request
+router.post("/reject-loan", async (req, res) => {
+  const { requestId, adminNotes } = req.body;
+
+  try {
+    const user = await User.findOne({ "loanRequests.requestId": requestId });
+    if (!user) return res.status(404).json({ message: "Loan request not found" });
+
+    const request = user.loanRequests.find(req => req.requestId === requestId);
+    request.status = "rejected";
+    request.processedAt = new Date();
+    request.adminNotes = adminNotes || "";
+
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: "Loan Application Update - TrustPass",
+      text: `We regret to inform you that your loan application for ₹${request.amount} has been declined. ${adminNotes ? 'Reason: ' + adminNotes : ''}`,
+    });
+
+    res.json({ message: "Loan request rejected successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to reject loan" });
+  }
+});
+
+// POST: Approve insurance request
+router.post("/approve-insurance", async (req, res) => {
+  const { requestId, adminNotes } = req.body;
+
+  try {
+    const user = await User.findOne({ "insuranceRequests.requestId": requestId });
+    if (!user) return res.status(404).json({ message: "Insurance request not found" });
+
+    const request = user.insuranceRequests.find(req => req.requestId === requestId);
+    request.status = "approved";
+    request.processedAt = new Date();
+    request.adminNotes = adminNotes || "";
+
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: "Insurance Application Approved - TrustPass",
+      text: `Congratulations! Your ${request.insuranceType} insurance application has been approved. Coverage: ₹${request.coverage}, Premium: ₹${request.premium}.`,
+    });
+
+    res.json({ message: "Insurance approved successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to approve insurance" });
+  }
+});
+
+// POST: Reject insurance request
+router.post("/reject-insurance", async (req, res) => {
+  const { requestId, adminNotes } = req.body;
+
+  try {
+    const user = await User.findOne({ "insuranceRequests.requestId": requestId });
+    if (!user) return res.status(404).json({ message: "Insurance request not found" });
+
+    const request = user.insuranceRequests.find(req => req.requestId === requestId);
+    request.status = "rejected";
+    request.processedAt = new Date();
+    request.adminNotes = adminNotes || "";
+
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: "Insurance Application Update - TrustPass",
+      text: `We regret to inform you that your ${request.insuranceType} insurance application has been declined. ${adminNotes ? 'Reason: ' + adminNotes : ''}`,
+    });
+
+    res.json({ message: "Insurance request rejected successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to reject insurance" });
+  }
+});
+
 module.exports = router;

@@ -16,6 +16,45 @@ const verificationFormSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now },
 });
 
+const loanApprovalSchema = new mongoose.Schema({
+  requestId: { type: String, required: true },
+  loanType: { type: String, required: true },
+  amount: { type: Number, required: true },
+  purpose: { type: String, required: true },
+  income: { type: Number, required: true },
+  employmentType: { type: String, required: true },
+  documents: [{ type: String }], // Document IDs from storage
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
+  },
+  submittedAt: { type: Date, default: Date.now },
+  processedAt: { type: Date },
+  adminNotes: { type: String }
+});
+
+const insuranceApprovalSchema = new mongoose.Schema({
+  requestId: { type: String, required: true },
+  insuranceType: { type: String, required: true },
+  coverage: { type: Number, required: true },
+  premium: { type: Number, required: true },
+  personalInfo: {
+    age: Number,
+    occupation: String,
+    healthConditions: String
+  },
+  documents: [{ type: String }], // Document IDs from storage
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
+  },
+  submittedAt: { type: Date, default: Date.now },
+  processedAt: { type: Date },
+  adminNotes: { type: String }
+});
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   dateOfBirth: { type: String, required: true },
@@ -26,6 +65,8 @@ const userSchema = new mongoose.Schema({
   verified: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false }, // new field
   verificationRequests: [verificationFormSchema],
+  loanRequests: [loanApprovalSchema],
+  insuranceRequests: [insuranceApprovalSchema],
 });
 
 module.exports = mongoose.model("User", userSchema);

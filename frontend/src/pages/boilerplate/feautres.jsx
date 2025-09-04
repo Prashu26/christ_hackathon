@@ -117,21 +117,22 @@ const FeaturesPage = () => {
     },
     {
       icon: Database,
-      title: 'Decentralized Storage',
-      description: 'Data distributed across multiple secure nodes',
-      demo: 'storage'
+      title: 'Smart Loan System',
+      description: 'Decentralized loan application with KYC verification, automatic fund disbursement, and on-chain repayment tracking.',
+      demo: 'loan'
     },
     {
-      icon: Cpu,
-      title: 'AI-Powered Verification',
-      description: 'Machine learning detects fraud and ensures authenticity',
-      demo: 'ai'
-    },
+      icon: Shield,
+      title: 'Smart Insurance System',
+      description: 'Blockchain-based insurance with instant claims processing and automated payouts.',
+      demo: 'insurance'
+    },    
+ 
     {
       icon: Network,
-      title: 'Interoperability',
-      description: 'Works with existing systems and future technologies',
-      demo: 'interop'
+      title: 'Secure Document Storage',
+      description: 'Encrypted document storage with password protection and secure access',
+      demo: 'storage'
     },
     {
       icon: Layers,
@@ -170,6 +171,31 @@ const FeaturesPage = () => {
 
   const handleQRDemo = () => {
     navigate('/generate-qr');
+  };
+
+  const handleLoanDemo = () => {
+    navigate('/loan');
+  };
+
+  const handleInsuranceDemo = () => {
+    navigate('/insurance');
+  };
+
+  const handleStorageDemo = () => {
+    navigate('/storage');
+  };
+
+  const handleDemo = (demo) => {
+    switch (demo) {
+      case 'insurance':
+        navigate('/insurance');
+        break;
+      case 'interop':
+        navigate('/storage');
+        break;
+      default:
+        break;
+    }
   };
 
   // Privacy Demo
@@ -486,7 +512,13 @@ const FeaturesPage = () => {
                 <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                 <p className="text-gray-400 mb-4">{feature.description}</p>
                 <button 
-                  onClick={feature.demo === 'qr' ? handleQRDemo : undefined}
+                  onClick={
+                    feature.demo === 'qr' ? handleQRDemo : 
+                    feature.demo === 'loan' ? handleLoanDemo : 
+                    feature.demo === 'insurance' ? handleInsuranceDemo :
+                    feature.demo === 'storage' ? handleStorageDemo :
+                    undefined
+                  }
                   className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium"
                 >
                   <Play className="w-4 h-4" />
