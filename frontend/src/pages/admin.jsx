@@ -212,7 +212,7 @@ const Admin = () => {
                 <IdCard className="w-5 h-5" />
                 <span>Aadhaar</span>
               </div>
-              <span>{showDetails.aadhaar ? "1234-5678-9012" : "••••••••••"}</span>
+              <span>{showDetails.aadhaar ? userData.aadhaarNumber?.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3') || "••••••••••" : "••••••••••"}</span>
               <button onClick={() => toggleDetail("aadhaar")}>
                 {showDetails.aadhaar ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -236,7 +236,7 @@ const Admin = () => {
                 <Mail className="w-5 h-5" />
                 <span>Email</span>
               </div>
-              <span>{showDetails.email ? "admin@example.com" : "••••••••••"}</span>
+              <span>{showDetails.email ? userData.email || "••••••••••" : "••••••••••"}</span>
               <button onClick={() => toggleDetail("email")}>
                 {showDetails.email ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -248,7 +248,7 @@ const Admin = () => {
                 <Calendar className="w-5 h-5" />
                 <span>DOB</span>
               </div>
-              <span>{showDetails.dob ? "12-05-1990" : "••••••••••"}</span>
+              <span>{showDetails.dob ? userData.dateOfBirth?.split('-').reverse().join('-') || "••••••••••" : "••••••••••"}</span>
               <button onClick={() => toggleDetail("dob")}>
                 {showDetails.dob ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
