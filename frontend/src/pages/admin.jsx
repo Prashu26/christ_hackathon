@@ -1,78 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { User, Check, X, Mail, Shield, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { User, Check, X, Mail, Shield } from "lucide-react";
 
 const Admin = () => {
-  const [pendingRequests, setPendingRequests] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      organization: 'ABC Corp',
-      requestDate: '2024-01-15',
-      status: 'pending'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      organization: 'XYZ Ltd',
-      requestDate: '2024-01-14',
-      status: 'pending'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.johnson@example.com',
-      organization: 'Tech Solutions',
-      requestDate: '2024-01-13',
-      status: 'pending'
-    }
-  ]);
-
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle approve request
-  const handleApprove = async (requestId) => {
+  const API_BASE = "http://localhost:5000/api/v1/users"; // your admin routes
+
+  // Fetch pending verification requests
+  const fetchPendingRequests = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/pending-verifiers`);
+      setPendingRequests(res.data); // assuming backend returns array of { requestId, name, email, universityOrCompany, option, submittedAt }
+      fetchPendingRequests(); // Refresh after action
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch pending requests.");
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingRequests();
+    const intervalId = setInterval(fetchPendingRequests, 10000); // 10000ms = 10s
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const handleApprove = async (requestId, email) => {
     setIsLoading(true);
     try {
-      // Remove the request from pending list
-      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
-
-      // Send approval email
-      await axios.post('http://localhost:5000/api/v1/admin/approve-verifier', {
-        requestId,
-        email: pendingRequests.find(req => req.id === requestId)?.email
-      });
-
-      toast.success('Verifier approved successfully! Email notification sent.');
+      await axios.post(`${API_BASE}/approve-verifier`, { requestId, email });
+      toast.success("Verifier approved and email sent!");
+      setPendingRequests((prev) =>
+        prev.filter((req) => req.requestId !== requestId)
+      );
     } catch (error) {
-      toast.error('Failed to approve verifier. Please try again.');
-      console.error('Approval error:', error);
+      console.error(error);
+      toast.error("Failed to approve verifier.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle reject request
-  const handleReject = async (requestId) => {
+  const handleReject = async (requestId, email) => {
     setIsLoading(true);
     try {
-      // Remove the request from pending list
-      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
-
-      // Send rejection email
-      await axios.post('http://localhost:5000/api/v1/admin/reject-verifier', {
-        requestId,
-        email: pendingRequests.find(req => req.id === requestId)?.email
-      });
-
-      toast.success('Verifier request rejected. Email notification sent.');
+      await axios.post(`${API_BASE}/reject-verifier`, { requestId, email });
+      toast.success("Verifier request rejected and email sent!");
+      setPendingRequests((prev) =>
+        prev.filter((req) => req.requestId !== requestId)
+      );
     } catch (error) {
-      toast.error('Failed to reject verifier. Please try again.');
-      console.error('Rejection error:', error);
+      console.error(error);
+      toast.error("Failed to reject verifier.");
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +63,7 @@ const Admin = () => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, x: -100, transition: { duration: 0.3 } }
+    exit: { opacity: 0, x: -100, transition: { duration: 0.3 } },
   };
 
   return (
@@ -103,8 +85,12 @@ const Admin = () => {
                 <User className="w-10 h-10 text-white" />
               </motion.div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-                <p className="text-gray-600">Manage verifier approval requests</p>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-600">
+                  Manage verifier approval requests
+                </p>
               </div>
             </div>
             <motion.div
@@ -128,7 +114,9 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600">Pending Requests</p>
-                <p className="text-3xl font-bold text-blue-600">{pendingRequests.length}</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {pendingRequests.length}
+                </p>
               </div>
               <Mail className="w-8 h-8 text-blue-500" />
             </div>
@@ -160,7 +148,9 @@ const Admin = () => {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="bg-white rounded-2xl shadow-xl p-8"
         >
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Pending Verifier Requests</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            Pending Verifier Requests
+          </h2>
 
           {pendingRequests.length === 0 ? (
             <motion.div
@@ -177,7 +167,7 @@ const Admin = () => {
               <AnimatePresence>
                 {pendingRequests.map((request, index) => (
                   <motion.div
-                    key={request.id}
+                    key={request.requestId}
                     variants={cardVariants}
                     initial="hidden"
                     animate="visible"
@@ -192,13 +182,21 @@ const Admin = () => {
                             <User className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-800">{request.name}</h3>
+                            <h3 className="text-lg font-semibold text-gray-800">
+                              {request.name}
+                            </h3>
                             <p className="text-gray-600">{request.email}</p>
-                            <p className="text-sm text-gray-500">{request.organization}</p>
+                            <p className="text-sm text-gray-500">
+                              {request.universityOrCompany}
+                            </p>
+                            <p className="text-sm text-gray-500 capitalize">
+                              Option: {request.option}
+                            </p>
                           </div>
                         </div>
                         <div className="mt-4 text-sm text-gray-500">
-                          Requested on: {new Date(request.requestDate).toLocaleDateString()}
+                          Requested on:{" "}
+                          {new Date(request.submittedAt).toLocaleDateString()}
                         </div>
                       </div>
 
@@ -206,7 +204,9 @@ const Admin = () => {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => handleApprove(request.id)}
+                          onClick={() =>
+                            handleApprove(request.requestId, request.email)
+                          }
                           disabled={isLoading}
                           className="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
                         >
@@ -217,7 +217,9 @@ const Admin = () => {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => handleReject(request.id)}
+                          onClick={() =>
+                            handleReject(request.requestId, request.email)
+                          }
                           disabled={isLoading}
                           className="bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
                         >

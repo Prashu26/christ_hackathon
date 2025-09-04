@@ -1,23 +1,61 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const Verify = () => {
-  const [formName, setFormName] = useState('');
-  const [universityOrCompany, setUniversityOrCompany] = useState('');
-  const [option, setOption] = useState('form');
+  const [isVerified, setIsVerified] = useState(null);
+  const [formName, setFormName] = useState("");
+  const [universityOrCompany, setUniversityOrCompany] = useState("");
+  const [option, setOption] = useState("form");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    console.log('Form Name:', formName);
-    console.log('University/Company:', universityOrCompany);
-    console.log('Option:', option);
+  const storedUser = JSON.parse(localStorage.getItem("userData"));
+  const userId = storedUser?._id;
 
-    // Navigate to the next part (VerifierPage) after submission
-    navigate('/verifier');
+  const API_BASE = "http://localhost:5000/api/v1/users";
+
+  useEffect(() => {
+    if (!userId) {
+      toast.error("User not logged in!");
+      navigate("/");
+      return;
+    }
+
+    // Check verification status
+    axios
+      .get(`${API_BASE}/${userId}/status`)
+      .then((res) => {
+        setIsVerified(res.data.verified);
+        if (res.data.verified) {
+          toast.success("Already verified!");
+          navigate("/verifier", { replace: true });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to fetch verification status.");
+      });
+  }, [userId, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API_BASE}/${userId}/verify`, {
+        formName,
+        universityOrCompany,
+        option,
+      });
+      toast.success("Verification request submitted! Admin will approve it.");
+      navigate("/profile");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to submit verification request.");
+    }
   };
+
+  if (isVerified === null) return <p>Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-red-100 flex items-center justify-center p-6">
@@ -28,10 +66,15 @@ const Verify = () => {
         transition={{ duration: 0.6 }}
         className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Verification Form</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Verification Form
+        </h2>
 
         <div className="mb-4">
-          <label htmlFor="formName" className="block text-gray-700 font-semibold mb-2">
+          <label
+            htmlFor="formName"
+            className="block text-gray-700 font-semibold mb-2"
+          >
             Form Name
           </label>
           <input
@@ -46,7 +89,10 @@ const Verify = () => {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="universityOrCompany" className="block text-gray-700 font-semibold mb-2">
+          <label
+            htmlFor="universityOrCompany"
+            className="block text-gray-700 font-semibold mb-2"
+          >
             University / Company Name
           </label>
           <input
@@ -61,7 +107,9 @@ const Verify = () => {
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Option</label>
+          <label className="block text-gray-700 font-semibold mb-2">
+            Option
+          </label>
           <select
             value={option}
             onChange={(e) => setOption(e.target.value)}

@@ -1,45 +1,76 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
-import toast from 'react-hot-toast';
-import { KeyRound } from 'lucide-react';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { KeyRound } from "lucide-react";
 
 const Signup = () => {
-  const [aadhaarNumber, setAadhaarNumber] = useState('');
-  const [step, setStep] = useState('aadhaar'); // 'aadhaar' or 'otp'
-  const [otp, setOtp] = useState('');
+  const [aadhaarNumber, setAadhaarNumber] = useState("");
+  const [step, setStep] = useState("aadhaar"); // 'aadhaar' or 'otp'
+  const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [backendEmail, setBackendEmail] = useState(""); // store returned email from backend
   const navigate = useNavigate();
 
-  // Handle Aadhaar submission and proceed to OTP
-  const handleAadhaarSubmit = () => {
+  const API_BASE_URL = "http://localhost:5000/api/v1/users";
+
+  // --- Step 1: Send Aadhaar to backend ---
+  const handleAadhaarSubmit = async () => {
     if (aadhaarNumber.length !== 12) {
-      toast.error('Please enter a valid 12-digit Aadhaar number.');
+      toast.error("Please enter a valid 12-digit Aadhaar number.");
       return;
     }
-    setStep('otp');
+
+    try {
+      setIsLoading(true);
+      const response = await axios.post(`${API_BASE_URL}/login/otp/send`, {
+        aadhaarNumber,
+      });
+
+      toast.success(response.data.message);
+
+      // backend uses email internally; just proceed to OTP step
+      setStep("otp");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handle verifying OTP
+  // --- Step 2: Verify OTP ---
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp) {
-      toast.error('Please enter the OTP.');
+      toast.error("Please enter the OTP.");
       return;
     }
-    setIsLoading(true);
+
     try {
-      // Assuming OTP verification without email for now
-      // You can modify this to include email if needed
-      // const response = await axios.post(
-      //   'http://localhost:5000/api/v1/users/login/otp/verify',
-      //   { otp }
-      // );
-      // toast.success('Verification successful!');
-      navigate('/landing');
+      setIsLoading(true);
+      const response = await axios.post(`${API_BASE_URL}/login/otp/verify`, {
+        aadhaarNumber,
+        otp,
+      });
+
+      toast.success(response.data.message);
+
+      const userData = response.data.data;
+
+      // Save user data to localStorage
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      // Redirect based on isAdmin
+      if (userData.isAdmin) {
+        navigate("/admin"); // admin dashboard
+      } else {
+        navigate("/landing"); // regular user landing page
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Verification failed.');
+      console.error(error);
+      toast.error(error.response?.data?.message || "OTP Verification failed.");
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +100,7 @@ const Signup = () => {
         </motion.h1>
 
         <AnimatePresence mode="wait">
-          {step === 'aadhaar' && (
+          {step === "aadhaar" && (
             <motion.div
               key="aadhaar-step"
               initial="hidden"
@@ -85,8 +116,12 @@ const Signup = () => {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="p-4 border-2 border-indigo-500 bg-indigo-50 rounded-lg"
               >
-                <h3 className="font-semibold text-gray-800 mb-2">Enter your Aadhaar Number</h3>
-                <p className="text-sm text-gray-600 mb-4">Enter your 12-digit Aadhaar number for verification</p>
+                <h3 className="font-semibold text-gray-800 mb-2">
+                  Enter your Aadhaar Number
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter your 12-digit Aadhaar number for verification
+                </p>
                 <motion.input
                   whileFocus={{ scale: 1.02 }}
                   type="text"
@@ -102,15 +137,15 @@ const Signup = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAadhaarSubmit}
-                disabled={aadhaarNumber.length !== 12}
+                disabled={aadhaarNumber.length !== 12 || isLoading}
                 className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next: Enter OTP
+                {isLoading ? "Sending OTP..." : "Next: Enter OTP"}
               </motion.button>
             </motion.div>
           )}
 
-          {step === 'otp' && (
+          {step === "otp" && (
             <motion.form
               key="otp-step"
               onSubmit={handleVerifyOtp}
@@ -121,7 +156,10 @@ const Signup = () => {
               transition={{ duration: 0.6 }}
               className="space-y-6"
             >
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="otp"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Enter OTP
               </label>
               <div className="relative">
@@ -143,7 +181,7 @@ const Signup = () => {
                 disabled={isLoading}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
               >
-                {isLoading ? 'Verifying...' : 'Verify & Login'}
+                {isLoading ? "Verifying..." : "Verify & Login"}
               </motion.button>
             </motion.form>
           )}

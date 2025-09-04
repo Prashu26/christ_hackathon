@@ -1,10 +1,17 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Shield, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Shield, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate(); // For redirecting after logout
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("userData"); // Clear user data
+    navigate("/"); // Redirect to login page
+  };
 
   return (
     <motion.nav
@@ -26,7 +33,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex space-x-8 items-center">
             <Link
               to="/features"
               className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -57,6 +64,15 @@ const Navbar = () => {
             >
               Profile
             </Link>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -91,6 +107,15 @@ const Navbar = () => {
             <Link to="/profile" className="text-gray-700 hover:text-blue-600">
               Profile
             </Link>
+
+            {/* Mobile Logout */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </motion.div>
         )}
       </div>
