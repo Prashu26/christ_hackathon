@@ -142,20 +142,20 @@ const ProfileSection = () => {
   if (!profileData) return <p>User not found</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 p-6 pt-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 pt-20">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-4xl font-bold text-gray-100 mb-2">
             Digital Identity Profile
           </h1>
-          <p className="text-gray-600">Secure • Verifiable • Privacy-First</p>
+          <p className="text-gray-300">Secure • Verifiable • Privacy-First</p>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-6">
+        <div className="bg-gray-800 rounded-3xl shadow-2xl overflow-hidden mb-6">
           {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white relative">
+          <div className="bg-gradient-to-r from-blue-800 to-purple-800 p-6 text-white relative">
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const ProfileSection = () => {
           <div className="p-8 flex flex-col lg:flex-row gap-8">
             {/* Left - Photo & Digital ID */}
             <div className="lg:w-1/3 flex flex-col items-center gap-6">
-              <div className="relative w-48 h-48 rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 p-1">
+              <div className="relative w-48 h-48 rounded-3xl overflow-hidden bg-gradient-to-br from-blue-900 to-purple-900 p-1">
                 {visibilitySettings.photo ? (
                   <img
                     src={profileData.photo}
@@ -201,8 +201,8 @@ const ProfileSection = () => {
                     className="w-full h-full object-cover rounded-3xl"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <User className="w-16 h-16 text-gray-400" />
+                  <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                    <User className="w-16 h-16 text-gray-500" />
                   </div>
                 )}
                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
@@ -232,9 +232,9 @@ const ProfileSection = () => {
             {/* Right - Details */}
             <div className="lg:w-2/3 space-y-6">
               {/* Personal Info */}
-              <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-blue-600" /> Personal
+              <div className="bg-gray-700 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-400" /> Personal
                   Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,21 +243,21 @@ const ProfileSection = () => {
                     <label className="text-sm font-medium text-gray-600">
                       Full Name
                     </label>
-                    <div className="flex items-center gap-2 p-3 bg-white rounded-xl border">
-                      <input
-                        type="text"
-                        value={profileData.name}
-                        readOnly={!isEditing}
-                        className="flex-1 bg-transparent outline-none text-gray-800 font-medium"
-                        onChange={(e) =>
-                          setProfileData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                      />
-                      <CopyButton text={profileData.name} fieldName="name" />
-                    </div>
+                  <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      readOnly={!isEditing}
+                      className="flex-1 bg-transparent outline-none text-gray-100 font-medium"
+                      onChange={(e) =>
+                        setProfileData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                    />
+                    <CopyButton text={profileData.name} fieldName="name" />
+                  </div>
                   </div>
 
                   {/* Aadhaar */}
@@ -272,17 +272,17 @@ const ProfileSection = () => {
                         isVisible={visibilitySettings.aadhaar}
                       />
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-white rounded-xl border">
-                      <Lock className="w-4 h-4 text-gray-400" />
+                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
+                      <Lock className="w-4 h-4 text-gray-500" />
                       <input
                         type="text"
                         value={
                           visibilitySettings.aadhaar
-                            ? storedUserData.aadhaarNumber
+                            ? storedUser.aadhaarNumber
                             : profileData.aadhaar
                         }
                         readOnly
-                        className="flex-1 bg-transparent outline-none text-gray-800 font-mono"
+                        className="flex-1 bg-transparent outline-none text-gray-100 font-mono"
                       />
                       {visibilitySettings.aadhaar && (
                         <CopyButton
@@ -290,7 +290,7 @@ const ProfileSection = () => {
                           fieldName="aadhaar"
                         />
                       )}
-                      <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                      <div className="flex items-center gap-1 text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">
                         <Shield className="w-3 h-3" /> Verified
                       </div>
                     </div>
@@ -308,16 +308,16 @@ const ProfileSection = () => {
                         isVisible={visibilitySettings.age}
                       />
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-white rounded-xl border">
-                      <Calendar className="w-4 h-4 text-gray-400" />
+                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
+                      <Calendar className="w-4 h-4 text-gray-500" />
                       <input
                         type="number"
                         value={visibilitySettings.age ? profileData.age : "••"}
                         readOnly={!isEditing}
-                        className="flex-1 bg-transparent outline-none text-gray-800"
+                        className="flex-1 bg-transparent outline-none text-gray-100"
                       />
                       {visibilitySettings.age && (
-                        <span className="text-sm text-gray-500">years old</span>
+                        <span className="text-sm text-gray-400">years old</span>
                       )}
                     </div>
                   </div>
@@ -327,19 +327,19 @@ const ProfileSection = () => {
                     <label className="text-sm font-medium text-gray-600">
                       Gender
                     </label>
-                    <div className="flex items-center gap-2 p-3 bg-white rounded-xl border">
+                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
                       <input
                         type="text"
                         value={profileData.gender || ""}
                         readOnly
-                        className="flex-1 bg-transparent outline-none text-gray-800"
+                        className="flex-1 bg-transparent outline-none text-gray-100"
                       />
                     </div>
                     {profileData.verificationRequests &&
                       profileData.verificationRequests.length > 0 && (
-                        <div className="bg-gray-50 rounded-2xl p-6 mt-6">
-                          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-purple-600" />{" "}
+                        <div className="bg-gray-600 rounded-2xl p-6 mt-6">
+                          <h3 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-purple-400" />{" "}
                             Verification Requests
                           </h3>
                           <ul className="space-y-2">
@@ -347,23 +347,23 @@ const ProfileSection = () => {
                               (req, index) => (
                                 <li
                                   key={index}
-                                  className="flex justify-between items-center p-3 bg-white rounded-xl border"
+                                  className="flex justify-between items-center p-3 bg-gray-700 rounded-xl border border-gray-600"
                                 >
                                   <div className="space-y-1">
-                                    <div className="font-medium">
+                                    <div className="font-medium text-gray-100">
                                       {req.formName}
                                     </div>
-                                    <div className="text-gray-600 text-sm">
+                                    <div className="text-gray-400 text-sm">
                                       {req.option} - {req.universityOrCompany}
                                     </div>
                                   </div>
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                                       req.status === "pending"
-                                        ? "bg-yellow-100 text-yellow-800"
+                                        ? "bg-yellow-900 text-yellow-200"
                                         : req.status === "approved"
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-red-100 text-red-800"
+                                        ? "bg-green-900 text-green-200"
+                                        : "bg-red-900 text-red-200"
                                     }`}
                                   >
                                     {req.status.toUpperCase()}
