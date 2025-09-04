@@ -44,6 +44,7 @@
 - [ ] Test all routes and navigation between pages
 - [ ] Test conditional navbar loading functionality
 - [ ] Test the new verifier flow: generateQR → verify → verifier
+- [ ] Test no navbar for admin users functionality
 
 ## Notes
 - Signup page located at frontend/src/pages/signup.jsx

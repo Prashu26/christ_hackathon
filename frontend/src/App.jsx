@@ -28,9 +28,13 @@ function AppContent() {
   const location = useLocation();
   const isSignupPage = location.pathname === '/';
 
+  // Get user data from localStorage
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const isAdmin = userData.isAdmin;
+
   return (
     <>
-      {isSignupPage ? <SimpleNavbar /> : <Navbar />}
+      {isAdmin ? null : (isSignupPage ? <SimpleNavbar /> : <Navbar />)}
       <Routes>
         <Route path="/" element={<Signup/>} />
         <Route path="/admin" element={<Admin />} />
