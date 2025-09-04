@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import SimpleNavbar from "./components/SimpleNavbar";
 
 // Import your pages
@@ -62,6 +63,7 @@ function AppContent() {
 
         {/* Add your other routes here */}
       </Routes>
+      <Toaster />
       {/* Your Footer can go here */}
     </>
   );
