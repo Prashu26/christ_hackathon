@@ -4,7 +4,6 @@ import {
   EyeOff,
   Edit,
   Shield,
-  MapPin,
   Calendar,
   Mail,
   Phone,
@@ -14,9 +13,7 @@ import {
   Check,
   QrCode,
   Download,
-  Settings,
   Fingerprint,
-  CreditCard,
 } from "lucide-react";
 import axios from "axios";
 
@@ -25,22 +22,19 @@ const ProfileSection = () => {
   const userId = storedUser._id;
 
   const [profileData, setProfileData] = useState(null);
-
   const [visibilitySettings, setVisibilitySettings] = useState({
     aadhaar: false,
-    address: false,
     phone: true,
     email: true,
     age: true,
     photo: true,
   });
-
   const [isEditing, setIsEditing] = useState(false);
   const [copiedField, setCopiedField] = useState(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!userId) return;
-
     const fetchUserData = async () => {
       try {
         const res = await axios.get(
@@ -60,26 +54,14 @@ const ProfileSection = () => {
             ? new Date().getFullYear() -
               new Date(user.dateOfBirth).getFullYear()
             : "",
-          address: user.address || {
-            street: "Not Provided",
-            city: "",
-            state: "",
-            pincode: "",
-          },
           photo: user.photo || "",
           verificationLevel: user.verified
             ? "Level 3 Verified"
-            : user.verificationRequests?.some((v) => v.status === "approved")
-            ? "Verifier"
             : "Unverified",
-          digitalIdNumber: `DID:2025:IND:${
+          digitalIdNumber: `DID:2025:IND:$${
             user.aadhaarNumber?.slice(-4) || "0000"
           }`,
-          isAdmin: user.isAdmin || false,
-          verificationRequests: user.verificationRequests || [],
         });
-
-        // Update localStorage with latest data
         localStorage.setItem("userData", JSON.stringify(user));
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -87,18 +69,12 @@ const ProfileSection = () => {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [userId]);
 
-  // Toggle visibility of sensitive fields
   const toggleVisibility = (field) =>
-    setVisibilitySettings((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
+    setVisibilitySettings((prev) => ({ ...prev, [field]: !prev[field] }));
 
-  // Copy field to clipboard
   const copyToClipboard = async (text, fieldName) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -112,10 +88,10 @@ const ProfileSection = () => {
   const PrivacyToggle = ({ field, label, isVisible }) => (
     <button
       onClick={() => toggleVisibility(field)}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 shadow-md ${
         isVisible
-          ? "bg-green-100 text-green-700 hover:bg-green-200"
-          : "bg-red-100 text-red-700 hover:bg-red-200"
+          ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+          : "bg-gray-600/50 text-gray-300 hover:bg-gray-500/50"
       }`}
     >
       {isVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -123,257 +99,203 @@ const ProfileSection = () => {
     </button>
   );
 
-  const CopyButton = ({ text, fieldName, className = "" }) => (
+  const CopyButton = ({ text, fieldName }) => (
     <button
       onClick={() => copyToClipboard(text, fieldName)}
-      className={`p-1.5 rounded-lg hover:bg-gray-100 transition-colors ${className}`}
+      className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
       title="Copy to clipboard"
     >
       {copiedField === fieldName ? (
-        <Check className="w-4 h-4 text-green-600" />
+        <Check className="w-4 h-4 text-green-400" />
       ) : (
-        <Copy className="w-4 h-4 text-gray-500" />
+        <Copy className="w-4 h-4 text-gray-400" />
       )}
     </button>
   );
-  // console.log(profileData.verificationRequests);
 
-  if (loading) return <p>Loading profile...</p>;
-  if (!profileData) return <p>User not found</p>;
+  if (loading) return <p className="text-white text-center">Loading profile...</p>;
+  if (!profileData) return <p className="text-white text-center">User not found</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 pt-20">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-100 mb-2">
-            Digital Identity Profile
-          </h1>
-          <p className="text-gray-300">Secure • Verifiable • Privacy-First</p>
+    <div className="min-h-screen bg-black text-white p-8 pt-20 font-sans">
+      {/* Header */}
+      <div className="mb-10 text-center">
+        <h1 className="text-5xl font-bold mb-2 tracking-tight">
+          Your Digital Identity
+        </h1>
+        <p className="text-gray-400">Inspired by Spotify • Secure • Private</p>
+      </div>
+
+      {/* Profile Card */}
+      <div className="bg-[#121212] rounded-3xl shadow-2xl overflow-hidden max-w-5xl mx-auto">
+        {/* Top Section */}
+        <div className="bg-gradient-to-r from-green-600/60 to-emerald-700/40 p-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Shield className="w-6 h-6 text-green-400" />
+            <span className="font-semibold text-lg">
+              {profileData.verificationLevel}
+            </span>
+            <div className="bg-black/30 px-3 py-1 rounded-full text-sm">
+              {profileData.digitalIdNumber}
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button className="p-2 bg-black/30 hover:bg-black/50 rounded-xl transition">
+              <QrCode className="w-5 h-5 text-white" />
+            </button>
+            <button className="p-2 bg-black/30 hover:bg-black/50 rounded-xl transition">
+              <Download className="w-5 h-5 text-white" />
+            </button>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="p-2 bg-black/30 hover:bg-black/50 rounded-xl transition"
+            >
+              {isEditing ? (
+                <Check className="w-5 h-5 text-green-400" />
+              ) : (
+                <Edit className="w-5 h-5 text-white" />
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-gray-800 rounded-3xl shadow-2xl overflow-hidden mb-6">
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-800 to-purple-800 p-6 text-white relative">
-            <div className="relative flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-6 h-6" />
-                  <span className="font-semibold">
-                    {profileData.verificationLevel}
-                  </span>
-                </div>
-                <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
-                  ID: {profileData.digitalIdNumber}
-                </div>
+        {/* Main Content */}
+        <div className="p-8 flex flex-col lg:flex-row gap-10">
+          {/* Left Side */}
+          <div className="lg:w-1/3 flex flex-col items-center gap-6">
+            <div className="relative w-48 h-48 rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center">
+              <User className="w-20 h-20 text-gray-600" />
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
+                <PrivacyToggle
+                  field="photo"
+                  label="Photo"
+                  isVisible={visibilitySettings.photo}
+                />
               </div>
-              <div className="flex gap-2">
-                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors">
-                  <QrCode className="w-5 h-5" />
-                </button>
-                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors">
-                  <Download className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors"
-                >
-                  {isEditing ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <Edit className="w-5 h-5" />
-                  )}
-                </button>
+            </div>
+
+            {/* Digital ID Card */}
+            <div className="bg-gradient-to-br from-green-700 to-emerald-800 rounded-2xl p-4 text-white w-full shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Fingerprint className="w-5 h-5" />
+                <span className="text-sm font-semibold">Digital ID</span>
+              </div>
+              <div className="text-xs opacity-80 mb-1">Blockchain Verified</div>
+              <div className="font-mono text-sm tracking-wide">
+                {profileData.digitalIdNumber}
               </div>
             </div>
           </div>
 
-          {/* Profile Content */}
-          <div className="p-8 flex flex-col lg:flex-row gap-8">
-            {/* Left - Photo & Digital ID */}
-            <div className="lg:w-1/3 flex flex-col items-center gap-6">
-              <div className="relative w-48 h-48 rounded-3xl overflow-hidden bg-gradient-to-br from-blue-900 to-purple-900 p-1">
-                {visibilitySettings.photo ? (
-                  <img
-                    src={profileData.photo}
-                    alt="Profile"
-                    className="w-full h-full object-cover rounded-3xl"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                    <User className="w-16 h-16 text-gray-500" />
-                  </div>
-                )}
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                  <PrivacyToggle
-                    field="photo"
-                    label="Photo"
-                    isVisible={visibilitySettings.photo}
-                  />
-                </div>
-              </div>
+          {/* Right Side */}
+          <div className="lg:w-2/3 space-y-6">
+            <div className="bg-[#181818] rounded-2xl p-6 shadow-md">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-green-400" /> Profile Info
+              </h3>
 
-              {/* Digital ID Card */}
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white w-full">
-                <div className="flex items-center gap-2 mb-3">
-                  <Fingerprint className="w-5 h-5" />
-                  <span className="text-sm font-semibold">Digital ID Card</span>
-                </div>
-                <div className="text-xs opacity-80 mb-2">
-                  Blockchain Verified
-                </div>
-                <div className="font-mono text-sm">
-                  {profileData.digitalIdNumber}
-                </div>
-              </div>
-            </div>
-
-            {/* Right - Details */}
-            <div className="lg:w-2/3 space-y-6">
-              {/* Personal Info */}
-              <div className="bg-gray-700 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-blue-400" /> Personal
-                  Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-600">
-                      Full Name
-                    </label>
-                  <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Name */}
+                <div>
+                  <label className="text-sm text-gray-400">Full Name</label>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
                     <input
                       type="text"
                       value={profileData.name}
                       readOnly={!isEditing}
-                      className="flex-1 bg-transparent outline-none text-gray-100 font-medium"
                       onChange={(e) =>
-                        setProfileData((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
+                        setProfileData((prev) => ({ ...prev, name: e.target.value }))
                       }
+                      className="flex-1 bg-transparent outline-none text-white font-medium"
                     />
                     <CopyButton text={profileData.name} fieldName="name" />
                   </div>
-                  </div>
+                </div>
 
-                  {/* Aadhaar */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-600">
-                        Aadhaar Number
-                      </label>
-                      <PrivacyToggle
-                        field="aadhaar"
-                        label="Aadhaar"
-                        isVisible={visibilitySettings.aadhaar}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
-                      <Lock className="w-4 h-4 text-gray-500" />
-                      <input
-                        type="text"
-                        value={
-                          visibilitySettings.aadhaar
-                            ? storedUser.aadhaarNumber
-                            : profileData.aadhaar
-                        }
-                        readOnly
-                        className="flex-1 bg-transparent outline-none text-gray-100 font-mono"
-                      />
-                      {visibilitySettings.aadhaar && (
-                        <CopyButton
-                          text={storedUserData.aadhaarNumber}
-                          fieldName="aadhaar"
-                        />
-                      )}
-                      <div className="flex items-center gap-1 text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">
-                        <Shield className="w-3 h-3" /> Verified
-                      </div>
-                    </div>
+                {/* Aadhaar */}
+                <div>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm text-gray-400">Aadhaar</label>
+                    <PrivacyToggle
+                      field="aadhaar"
+                      label="Aadhaar"
+                      isVisible={visibilitySettings.aadhaar}
+                    />
                   </div>
-
-                  {/* Age */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-600">
-                        Age
-                      </label>
-                      <PrivacyToggle
-                        field="age"
-                        label="Age"
-                        isVisible={visibilitySettings.age}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <input
-                        type="number"
-                        value={visibilitySettings.age ? profileData.age : "••"}
-                        readOnly={!isEditing}
-                        className="flex-1 bg-transparent outline-none text-gray-100"
-                      />
-                      {visibilitySettings.age && (
-                        <span className="text-sm text-gray-400">years old</span>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
+                    <Lock className="w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      value={
+                        visibilitySettings.aadhaar
+                          ? storedUser.aadhaarNumber
+                          : profileData.aadhaar
+                      }
+                      readOnly
+                      className="flex-1 bg-transparent outline-none text-white font-mono"
+                    />
                   </div>
+                </div>
 
-                  {/* Gender */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-600">
-                      Gender
-                    </label>
-                    <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-xl border border-gray-600">
-                      <input
-                        type="text"
-                        value={profileData.gender || ""}
-                        readOnly
-                        className="flex-1 bg-transparent outline-none text-gray-100"
-                      />
-                    </div>
-                    {profileData.verificationRequests &&
-                      profileData.verificationRequests.length > 0 && (
-                        <div className="bg-gray-600 rounded-2xl p-6 mt-6">
-                          <h3 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-purple-400" />{" "}
-                            Verification Requests
-                          </h3>
-                          <ul className="space-y-2">
-                            {profileData.verificationRequests.map(
-                              (req, index) => (
-                                <li
-                                  key={index}
-                                  className="flex justify-between items-center p-3 bg-gray-700 rounded-xl border border-gray-600"
-                                >
-                                  <div className="space-y-1">
-                                    <div className="font-medium text-gray-100">
-                                      {req.formName}
-                                    </div>
-                                    <div className="text-gray-400 text-sm">
-                                      {req.option} - {req.universityOrCompany}
-                                    </div>
-                                  </div>
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      req.status === "pending"
-                                        ? "bg-yellow-900 text-yellow-200"
-                                        : req.status === "approved"
-                                        ? "bg-green-900 text-green-200"
-                                        : "bg-red-900 text-red-200"
-                                    }`}
-                                  >
-                                    {req.status.toUpperCase()}
-                                  </span>
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        </div>
-                      )}
+                {/* Age */}
+                <div>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm text-gray-400">Age</label>
+                    <PrivacyToggle
+                      field="age"
+                      label="Age"
+                      isVisible={visibilitySettings.age}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      value={visibilitySettings.age ? profileData.age : "••"}
+                      readOnly={!isEditing}
+                      className="flex-1 bg-transparent outline-none text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="text-sm text-gray-400">Email</label>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      value={profileData.email}
+                      readOnly
+                      className="flex-1 bg-transparent outline-none text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="text-sm text-gray-400">Phone</label>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
+                    <Phone className="w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      value={profileData.phone}
+                      readOnly
+                      className="flex-1 bg-transparent outline-none text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="text-sm text-gray-400">Gender</label>
+                  <div className="flex items-center gap-2 bg-[#202020] p-3 rounded-xl mt-1">
+                    <input
+                      type="text"
+                      value={profileData.gender || ""}
+                      readOnly
+                      className="flex-1 bg-transparent outline-none text-white"
+                    />
                   </div>
                 </div>
               </div>
