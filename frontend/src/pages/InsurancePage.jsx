@@ -5,7 +5,8 @@ import axios from 'axios';
 import InsuranceApplication from '../components/InsuranceApplication';
 import Web3Integration from '../components/Web3Integration';
 import { insuranceContract, web3Utils } from '../utils/web3';
-import InsuranceClaim from '../components/InsuranceClaim'
+import InsuranceClaim from '../components/InsuranceClaim';
+import MetaMaskUtils from '../utils/metamask';
 
 function InsurancePage() {
   const navigate = useNavigate()
@@ -17,6 +18,8 @@ function InsurancePage() {
   // State management
   const [walletConnected, setWalletConnected] = useState(false)
   const [walletAddress, setWalletAddress] = useState('')
+  const [walletBalance, setWalletBalance] = useState('0')
+  const [currentNetwork, setCurrentNetwork] = useState(null)
   const [web3Account, setWeb3Account] = useState('')
   const [web3Balance, setWeb3Balance] = useState('0')
   const [insuranceRequests, setInsuranceRequests] = useState([])
@@ -25,71 +28,121 @@ function InsurancePage() {
   const [error, setError] = useState('')
   const [currentView, setCurrentView] = useState('application')
 
-  // Connect MetaMask wallet
+  // Connect MetaMask wallet using utility
   const connectWallet = async () => {
-    console.log('Connect wallet clicked')
+    console.log('🔗 Connect wallet clicked')
     setLoading(true)
     setError('')
     
     try {
-      // Check if MetaMask is installed
-      if (typeof window.ethereum === 'undefined') {
-        setError('MetaMask is not installed. Please install MetaMask extension to continue.')
-        setLoading(false)
-        return
-      }
-
-      console.log('MetaMask detected, requesting accounts...')
+      const result = await MetaMaskUtils.connect({
+        timeout: 30000,
+        expectedChainId: null, // Accept any network for now
+        autoSwitchNetwork: false
+      })
       
-      // Add timeout to prevent hanging
-      const requestAccounts = () => {
-        return Promise.race([
-          window.ethereum.request({ method: 'eth_requestAccounts' }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout - please check MetaMask popup')), 10000)
-          )
-        ])
-      }
-      
-      // Request account access with timeout
-      const accounts = await requestAccounts()
-      
-      console.log('Accounts received:', accounts)
-      
-      if (accounts.length === 0) {
-        setError('No accounts found. Please unlock MetaMask and try again.')
-        setLoading(false)
-        return
-      }
-      
-      const address = accounts[0]
-      setWalletAddress(address)
-      setWalletConnected(true)
-      setError('')
-      
-      console.log('Wallet connected successfully:', address)
-      
-      // Load user's insurance requests if logged in
-      if (userId) {
-        await loadUserData()
+      if (result.success) {
+        console.log('✅ Wallet connected successfully:', result)
+        setWalletAddress(result.address)
+        setWalletBalance(result.balance)
+        setCurrentNetwork(result.network)
+        setWalletConnected(true)
+        setError('')
+        
+        // Set up event listeners for account and network changes
+        MetaMaskUtils.onAccountsChanged((accounts) => {
+          if (accounts.length === 0) {
+            disconnectWallet()
+          } else if (accounts[0] !== walletAddress) {
+            setWalletAddress(accounts[0])
+            // Refresh balance for new account
+            MetaMaskUtils.getBalance(accounts[0]).then(setWalletBalance)
+          }
+        })
+        
+        MetaMaskUtils.onChainChanged((chainId) => {
+          // Refresh network info
+          MetaMaskUtils.getCurrentNetwork().then(setCurrentNetwork)
+        })
+        
+        if (userId) {
+          loadUserData().catch(console.error)
+        }
+      } else {
+        console.error('❌ Connection failed:', result.error)
+        setError(result.error)
       }
       
     } catch (error) {
-      console.error('Wallet connection error:', error)
-      
-      if (error.code === 4001) {
-        setError('Connection rejected. Please approve the connection in MetaMask.')
-      } else if (error.code === -32002) {
-        setError('Connection request pending. Please check MetaMask popup or close existing requests.')
-      } else if (error.message.includes('timeout')) {
-        setError('Connection timeout. Please check if MetaMask popup is blocked or if MetaMask is unlocked.')
-      } else {
-        setError(`Failed to connect wallet: ${error.message || 'Unknown error'}`)
-      }
+      console.error('❌ Unexpected error:', error)
+      setError(`Unexpected error: ${error.message}`)
     } finally {
       setLoading(false)
     }
   }
+
+  // Disconnect wallet
+  const disconnectWallet = () => {
+    setWalletConnected(false)
+    setWalletAddress('')
+    setWalletBalance('0')
+    setCurrentNetwork(null)
+    setWeb3Account('')
+    setWeb3Balance('0')
+    setError('')
+    
+    // Remove event listeners
+    MetaMaskUtils.removeAllListeners()
+    console.log('Wallet disconnected')
+  }
+
+  // Auto-connect wallet on page load if previously connected
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      if (MetaMaskUtils.isInstalled()) {
+        try {
+          // Add small delay to avoid race conditions
+          await new Promise(resolve => setTimeout(resolve, 100))
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+          if (accounts.length > 0) {
+            const address = accounts[0]
+            const balance = await MetaMaskUtils.getBalance(address)
+            const network = await MetaMaskUtils.getCurrentNetwork()
+            
+            setWalletAddress(address)
+            setWalletBalance(balance)
+            setCurrentNetwork(network)
+            setWalletConnected(true)
+            
+            console.log('Auto-connected to wallet:', address, 'Network:', network?.name)
+            
+            // Set up event listeners
+            MetaMaskUtils.onAccountsChanged((accounts) => {
+              if (accounts.length === 0) {
+                disconnectWallet()
+              } else if (accounts[0] !== walletAddress) {
+                setWalletAddress(accounts[0])
+                MetaMaskUtils.getBalance(accounts[0]).then(setWalletBalance)
+              }
+            })
+            
+            MetaMaskUtils.onChainChanged((chainId) => {
+              MetaMaskUtils.getCurrentNetwork().then(setCurrentNetwork)
+            })
+          }
+        } catch (error) {
+          console.log('Auto-connection failed:', error)
+        }
+      }
+    }
+
+    // Use requestIdleCallback for better performance if available
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(checkWalletConnection)
+    } else {
+      setTimeout(checkWalletConnection, 0)
+    }
+  }, [])
 
   // Load user data on component mount
   useEffect(() => {
@@ -158,26 +211,91 @@ function InsurancePage() {
             <p className="text-white/80 mb-6">
               Connect your MetaMask wallet to apply for insurance or manage your policies
             </p>
+            
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle size={16} />
+                  <span className="font-medium">Connection Failed</span>
+                </div>
+                <p>{error}</p>
+                <div className="mt-3 text-xs text-red-200">
+                  <p>💡 Troubleshooting steps:</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    {error.includes('not installed') ? (
+                      <>
+                        <li>Install MetaMask from <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">metamask.io</a></li>
+                        <li>Refresh this page after installation</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Make sure MetaMask extension is enabled in your browser</li>
+                        <li>Unlock MetaMask if it's locked</li>
+                        <li>Check if MetaMask popup is blocked by your browser</li>
+                        <li>Close any pending MetaMask connection requests</li>
+                        <li>Try refreshing the page</li>
+                        <li>Restart your browser if the issue persists</li>
+                      </>
+                    )}
+                  </ul>
+                  <div className="mt-2 p-2 bg-black/20 rounded text-xs">
+                    <p className="font-medium">Debug info (check browser console for more details):</p>
+                    <p>• Press F12 to open developer tools</p>
+                    <p>• Look for error messages in the Console tab</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <button
               onClick={connectWallet}
               disabled={loading}
               className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-bold hover:transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? 'Connecting...' : 'Connect MetaMask'}
+              {loading ? 'Connecting...' : error ? 'Retry Connection' : 'Connect MetaMask'}
             </button>
+            
+            {loading && (
+              <p className="mt-3 text-sm text-white/60">
+                Please check MetaMask for a connection popup...
+              </p>
+            )}
           </div>
         </div>
       ) : (
         <div>
           {/* Wallet Info */}
           <div className="max-w-6xl mx-auto mb-8">
-            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Wallet className="text-green-400" size={24} />
-                <div>
-                  <p className="font-medium">Wallet Connected</p>
-                  <p className="text-sm text-white/60">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
+            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Wallet className="text-green-400" size={24} />
+                  <div>
+                    <p className="font-medium">Wallet Connected</p>
+                    <p className="text-sm text-white/60">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
+                  </div>
                 </div>
+                <button
+                  onClick={disconnectWallet}
+                  className="px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-300 rounded-lg hover:bg-red-500/30 transition-all duration-300"
+                >
+                  Disconnect
+                </button>
+              </div>
+              
+              {/* Additional wallet info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <DollarSign size={16} className="text-blue-400" />
+                  <span className="text-sm text-white/80">Balance: {walletBalance} ETH</span>
+                </div>
+                {currentNetwork && (
+                  <div className="flex items-center gap-2">
+                    <Shield size={16} className="text-purple-400" />
+                    <span className="text-sm text-white/80">Network: {currentNetwork.name}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

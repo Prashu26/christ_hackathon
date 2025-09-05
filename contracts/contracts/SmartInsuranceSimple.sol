@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "hardhat/console.sol";
+
 /**
  * @title SmartInsurance
  * @dev A decentralized insurance system with admin approval workflow

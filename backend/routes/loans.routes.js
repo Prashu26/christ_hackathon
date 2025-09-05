@@ -82,10 +82,25 @@ router.post('/apply', upload.fields([
     });
 
     // Validate required fields
-    if (!name || !email || !loanAmount || !walletAddress || !userId) {
+    if (!name || !email || !loanAmount || !userId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: name, email, loanAmount, walletAddress, userId'
+        error: 'Missing required fields: name, email, loanAmount, userId'
+      });
+    }
+
+    // Validate numeric fields
+    if (isNaN(parseFloat(loanAmount)) || parseFloat(loanAmount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid loan amount. Must be a positive number.'
+      });
+    }
+
+    if (monthlyIncome && (isNaN(parseFloat(monthlyIncome)) || parseFloat(monthlyIncome) < 0)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid monthly income. Must be a positive number.'
       });
     }
 
@@ -109,16 +124,18 @@ router.post('/apply', upload.fields([
     }
     console.log('User found:', user.name);
 
-    // Check if user already has a pending loan request
+    // Check if user already has a pending loan request (optional check - can be removed if multiple applications are allowed)
     const existingRequest = user.loanRequests.find(req => 
       req.status === 'pending'
     );
 
     if (existingRequest) {
-      return res.status(400).json({
-        success: false,
-        error: 'You already have a pending loan application'
-      });
+      console.log('User has existing pending request:', existingRequest.requestId);
+      // Comment out the restriction to allow multiple applications for testing
+      // return res.status(400).json({
+      //   success: false,
+      //   error: 'You already have a pending loan application'
+      // });
     }
 
     // Process uploaded files
@@ -142,6 +159,8 @@ router.post('/apply', upload.fields([
       purpose: purpose || 'Personal Loan',
       income: parseFloat(monthlyIncome) || 0,
       employmentType: employmentType || 'Not specified',
+      repaymentPeriod: parseInt(repaymentPeriod) || 12,
+      walletAddress: walletAddress || '',
       documents,
       status: 'pending',
       submittedAt: new Date()
@@ -157,8 +176,8 @@ router.post('/apply', upload.fields([
     await user.save();
     console.log('User saved successfully');
 
-    console.log(`Loan application submitted for admin approval: ${name} (${walletAddress})`);
-    console.log(`Request ID: ${requestId}, Amount: ₹${loanAmount}`);
+    console.log(`Loan application submitted for admin approval: ${name} (${walletAddress || 'No wallet'})`);
+    console.log(`Request ID: ${requestId}, Amount: ${loanAmount} ETH`);
 
     res.json({
       success: true,
@@ -202,6 +221,8 @@ router.get('/status/:userId', async (req, res) => {
         loanType: req.loanType,
         amount: req.amount,
         purpose: req.purpose,
+        repaymentPeriod: req.repaymentPeriod,
+        walletAddress: req.walletAddress,
         status: req.status,
         submittedAt: req.submittedAt,
         processedAt: req.processedAt,

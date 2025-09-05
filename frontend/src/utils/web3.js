@@ -73,12 +73,47 @@ export const CLAIM_STATUS = {
   3: 'Paid'
 };
 
+// Network configuration
+const REQUIRED_NETWORK = {
+  chainId: '0x539', // 1337 in hex
+  chainName: 'Hardhat Local',
+  rpcUrls: ['http://127.0.0.1:8545'],
+  nativeCurrency: {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18
+  }
+};
+
 /**
  * Get Web3 provider and signer
  */
 export const getWeb3Provider = async () => {
   if (typeof window.ethereum !== 'undefined') {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
+    
+    // Check current network
+    const network = await provider.getNetwork();
+    if (network.chainId !== 1337) {
+      // Try to switch to Hardhat network
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: REQUIRED_NETWORK.chainId }],
+        });
+      } catch (switchError) {
+        // Network doesn't exist, add it
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [REQUIRED_NETWORK],
+          });
+        } else {
+          throw new Error(`Please switch to Hardhat Local network (Chain ID: 1337)`);
+        }
+      }
+    }
+    
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
     return { provider, signer };

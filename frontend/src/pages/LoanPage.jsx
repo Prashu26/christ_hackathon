@@ -163,9 +163,9 @@ function LoanPage() {
       formData.append('walletAddress', web3Account)
       
       // Add documents
-      formData.append('identityProof', documents.identity)
-      formData.append('incomeProof', documents.income)
-      formData.append('addressProof', documents.address)
+      formData.append('identity', documents.identity)
+      formData.append('income', documents.income)
+      formData.append('address', documents.address)
 
       console.log('Submitting loan application with userId:', userId)
 

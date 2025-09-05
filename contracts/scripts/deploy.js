@@ -1,71 +1,71 @@
 const { ethers } = require("hardhat");
+const fs = require("fs");
 
 async function main() {
-  console.log("Deploying Smart Contracts...");
+  console.log("🚀 Deploying Smart Contracts...");
 
-  // Get the ContractFactory and Signers here.
+  // Get the ContractFactory and Signer
   const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  const deployerAddress = await deployer.getAddress();
+
+  console.log("Deploying contracts with the account:", deployerAddress);
+
+  const balance = await ethers.provider.getBalance(deployerAddress);
+  console.log("Account balance:", balance.toString());
 
   // Deploy SmartLoan contract
-  console.log("\nDeploying SmartLoan contract...");
-  const SmartLoan = await ethers.getContractFactory("SmartLoan");
+  console.log("\n📌 Deploying SmartLoan contract...");
+  const SmartLoan = await ethers.getContractFactory("contracts/contracts/SmartLoan.sol:SmartLoan");
   const smartLoan = await SmartLoan.deploy();
-  await smartLoan.deployed();
-  console.log("SmartLoan deployed to:", smartLoan.address);
+  await smartLoan.waitForDeployment();
+  console.log("SmartLoan deployed to:", await smartLoan.getAddress());
 
   // Deploy SmartInsurance contract
-  console.log("\nDeploying SmartInsurance contract...");
-  const SmartInsurance = await ethers.getContractFactory("SmartInsurance");
+  console.log("\n📌 Deploying SmartInsurance contract...");
+  const SmartInsurance = await ethers.getContractFactory("contracts/contracts/SmartInsurance.sol:SmartInsurance");
   const smartInsurance = await SmartInsurance.deploy();
-  await smartInsurance.deployed();
-  console.log("SmartInsurance deployed to:", smartInsurance.address);
+  await smartInsurance.waitForDeployment();
+  console.log("SmartInsurance deployed to:", await smartInsurance.getAddress());
 
-  // Add initial funds to contracts (optional)
-  console.log("\nAdding initial funds to contracts...");
-  
+  // Add initial funds to contracts
+  console.log("\n💰 Adding initial funds to contracts...");
+
   // Add 10 ETH to loan lending pool
-  const loanPoolAmount = ethers.utils.parseEther("10.0");
-  await smartLoan.addToLendingPool({ value: loanPoolAmount });
-  console.log("Added 10 ETH to SmartLoan lending pool");
+  const loanPoolAmount = ethers.parseEther("10.0"); // v6 syntax
+  await (await smartLoan.addToLendingPool({ value: loanPoolAmount })).wait();
+  console.log("✅ Added 10 ETH to SmartLoan lending pool");
 
   // Add 5 ETH to insurance pool
-  const insurancePoolAmount = ethers.utils.parseEther("5.0");
-  await smartInsurance.addToInsurancePool({ value: insurancePoolAmount });
-  console.log("Added 5 ETH to SmartInsurance pool");
+  const insurancePoolAmount = ethers.parseEther("5.0"); // v6 syntax
+  await (await smartInsurance.addToInsurancePool({ value: insurancePoolAmount })).wait();
+  console.log("✅ Added 5 ETH to SmartInsurance pool");
 
-  console.log("\nDeployment Summary:");
+  // Deployment summary
+  console.log("\n📋 Deployment Summary:");
   console.log("==================");
-  console.log("SmartLoan Address:", smartLoan.address);
-  console.log("SmartInsurance Address:", smartInsurance.address);
-  console.log("Deployer Address:", deployer.address);
-  
+  console.log("SmartLoan Address:", await smartLoan.getAddress());
+  console.log("SmartInsurance Address:", await smartInsurance.getAddress());
+  console.log("Deployer Address:", deployerAddress);
+
   // Save deployment info
   const deploymentInfo = {
     network: "localhost",
     smartLoan: {
-      address: smartLoan.address,
-      deployer: deployer.address
+      address: await smartLoan.getAddress(),
+      deployer: deployerAddress,
     },
     smartInsurance: {
-      address: smartInsurance.address,
-      deployer: deployer.address
+      address: await smartInsurance.getAddress(),
+      deployer: deployerAddress,
     },
-    deployedAt: new Date().toISOString()
+    deployedAt: new Date().toISOString(),
   };
 
-  const fs = require('fs');
-  fs.writeFileSync(
-    './deployment.json',
-    JSON.stringify(deploymentInfo, null, 2)
-  );
-  console.log("Deployment info saved to deployment.json");
+  fs.writeFileSync("./deployment.json", JSON.stringify(deploymentInfo, null, 2));
+  console.log("📝 Deployment info saved to deployment.json");
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
