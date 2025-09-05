@@ -1,147 +1,183 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, QrCode } from 'lucide-react'
-import axios from 'axios'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, QrCode } from "lucide-react";
+import axios from "axios";
 
 function UserPage() {
-  const navigate = useNavigate()
-  const [credentialTypes, setCredentialTypes] = useState({})
-  const [selectedType, setSelectedType] = useState('')
-  const [mode, setMode] = useState('offline')
-  const [userData, setUserData] = useState({})
-  const [qrCode, setQrCode] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [credentialTypes, setCredentialTypes] = useState({});
+  const [selectedType, setSelectedType] = useState("");
+  const [mode, setMode] = useState("offline");
+  const [userData, setUserData] = useState({});
+  const [qrCode, setQrCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const storedUser = JSON.parse(localStorage.getItem("userData"));
+
+  // helper to calculate age
+  const calculateAge = (dob) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  };
 
   useEffect(() => {
-    fetchCredentialTypes()
-  }, [])
+    fetchCredentialTypes();
+
+    if (storedUser) {
+      const age = calculateAge(storedUser.dateOfBirth);
+      setUserData({
+        ...storedUser,
+        age,
+        isOver18: age >= 18,
+      });
+    }
+  }, []);
 
   const fetchCredentialTypes = async () => {
     try {
-      console.log('Fetching credential types from backend...')
-      const response = await axios.get('http://localhost:5000/api/credentials/types')
-      console.log('Credential types response:', response.data)
-      setCredentialTypes(response.data.credentialTypes)
+      const response = await axios.get(
+        "http://localhost:5000/api/credentials/types"
+      );
+      setCredentialTypes(response.data.credentialTypes);
     } catch (error) {
-      console.error('Error fetching credential types:', error)
-      setError('Failed to load credential types. Make sure backend server is running on port 5000.')
+      console.error("Error fetching credential types:", error);
+      setError("Failed to load credential types.");
     }
-  }
+  };
 
+  // don’t reset userData completely, just change type
   const handleTypeChange = (type) => {
-    setSelectedType(type)
-    setUserData({})
-    setQrCode('')
-    setError('')
-  }
+    setSelectedType(type);
+    setQrCode("");
+    setError("");
+  };
 
   const handleInputChange = (field, value) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   const generateQRCode = async () => {
     if (!selectedType || Object.keys(userData).length === 0) {
-      setError('Please select a credential type and fill in all required fields')
-      return
+      setError(
+        "Please select a credential type and fill in all required fields"
+      );
+      return;
     }
 
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await axios.post('http://localhost:5000/api/credentials/generate', {
-        credentialType: selectedType,
-        userData: userData,
-        mode: mode
-      })
+      const response = await axios.post(
+        "http://localhost:5000/api/credentials/generate",
+        {
+          credentialType: selectedType,
+          userData: userData,
+          mode: mode,
+        }
+      );
 
       if (response.data.success) {
-        setQrCode(response.data.qrCode)
+        setQrCode(response.data.qrCode);
       } else {
-        setError('Failed to generate QR code')
+        setError("Failed to generate QR code");
       }
     } catch (error) {
-      console.error('Error generating QR code:', error)
-      setError('Failed to generate QR code')
+      console.error("Error generating QR code:", error);
+      setError("Failed to generate QR code");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const renderFormFields = () => {
-    if (!selectedType || !credentialTypes[selectedType]) return null
+    if (!selectedType || !credentialTypes[selectedType]) return null;
 
-    const fields = credentialTypes[selectedType].fields
+    const fields = credentialTypes[selectedType].fields;
 
-    return fields.map(field => (
+    return fields.map((field) => (
       <div key={field} className="mb-6">
         <label className="block mb-2 font-medium text-white">
-          {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+          {field.charAt(0).toUpperCase() +
+            field.slice(1).replace(/([A-Z])/g, " $1")}
         </label>
-        {field === 'dateOfBirth' ? (
+
+        {field === "dateOfBirth" ? (
           <input
             type="date"
-            className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-            value={userData[field] || ''}
-            onChange={(e) => handleInputChange(field, e.target.value)}
+            className="w-full p-3 border border-white/30 rounded-lg bg-white/20 text-white"
+            value={userData.dateOfBirth || ""}
+            disabled
           />
-        ) : field === 'isOver18' ? (
-          <select
-            className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
-            value={userData[field] || ''}
-            onChange={(e) => handleInputChange(field, e.target.value === 'true')}
-          >
-            <option value="" className="bg-gray-800">Select...</option>
-            <option value="true" className="bg-gray-800">Yes</option>
-            <option value="false" className="bg-gray-800">No</option>
-          </select>
-        ) : field === 'graduationYear' || field === 'startDate' ? (
+        ) : field === "age" ? (
           <input
-            type="date"
-            className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-            value={userData[field] || ''}
-            onChange={(e) => handleInputChange(field, e.target.value)}
+            type="number"
+            className="w-full p-3 border border-white/30 rounded-lg bg-white/20 text-white"
+            value={userData.age || ""}
+            disabled
+          />
+        ) : field === "isOver18" ? (
+          <input
+            type="text"
+            className="w-full p-3 border border-white/30 rounded-lg bg-white/20 text-white"
+            value={userData.isOver18 ? "Yes" : "No"}
+            disabled
           />
         ) : (
           <input
             type="text"
             className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-            placeholder={`Enter ${field}`}
-            value={userData[field] || ''}
+            placeholder={`Enter ${field}`} // ✅ FIXED
+            value={userData[field] || ""}
             onChange={(e) => handleInputChange(field, e.target.value)}
           />
         )}
       </div>
-    ))
-  }
+    ));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 text-white">
-      <button 
+      <button
         className="absolute top-8 left-8 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg cursor-pointer transition-all duration-300 hover:bg-white/20 flex items-center gap-2"
-        onClick={() => navigate('/generate-qr')}
+        onClick={() => navigate("/generate-qr")}
       >
         <ArrowLeft size={20} /> Back to QR Options
       </button>
 
       <div className="text-center mb-12 pt-16">
         <h1 className="text-4xl font-bold mb-4">Generate Credential</h1>
-        <p className="text-lg opacity-90">Create a verifiable credential and generate a QR code for sharing</p>
+        <p className="text-lg opacity-90">
+          Create a verifiable credential and generate a QR code for sharing
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8">
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-white">Credential Type</label>
+          <label className="block mb-2 font-medium text-white">
+            Credential Type
+          </label>
           <select
             className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
             value={selectedType}
             onChange={(e) => handleTypeChange(e.target.value)}
           >
-            <option value="" className="bg-gray-800">Select credential type...</option>
+            <option value="" className="bg-gray-800">
+              Select credential type...
+            </option>
             {Object.entries(credentialTypes).map(([key, type]) => (
               <option key={key} value={key} className="bg-gray-800">
                 {type.name} - {type.description}
@@ -153,25 +189,35 @@ function UserPage() {
         {selectedType && (
           <>
             <div className="mb-6">
-              <label className="block mb-2 font-medium text-white">Verification Mode</label>
+              <label className="block mb-2 font-medium text-white">
+                Verification Mode
+              </label>
               <div className="flex gap-4">
                 <button
                   className={`flex-1 p-3 border border-white/30 rounded-lg bg-white/10 text-white cursor-pointer transition-all duration-300 ${
-                    mode === 'offline' ? 'bg-white/30 border-white/50' : 'hover:bg-white/20'
+                    mode === "offline"
+                      ? "bg-white/30 border-white/50"
+                      : "hover:bg-white/20"
                   }`}
-                  onClick={() => setMode('offline')}
+                  onClick={() => setMode("offline")}
                 >
                   <div>Offline Mode</div>
-                  <small className="block text-sm opacity-80">Works without internet</small>
+                  <small className="block text-sm opacity-80">
+                    Works without internet
+                  </small>
                 </button>
                 <button
                   className={`flex-1 p-3 border border-white/30 rounded-lg bg-white/10 text-white cursor-pointer transition-all duration-300 ${
-                    mode === 'online' ? 'bg-white/30 border-white/50' : 'hover:bg-white/20'
+                    mode === "online"
+                      ? "bg-white/30 border-white/50"
+                      : "hover:bg-white/20"
                   }`}
-                  onClick={() => setMode('online')}
+                  onClick={() => setMode("online")}
                 >
                   <div>Online Mode</div>
-                  <small className="block text-sm opacity-80">Blockchain verification</small>
+                  <small className="block text-sm opacity-80">
+                    Blockchain verification
+                  </small>
                 </button>
               </div>
             </div>
@@ -204,19 +250,29 @@ function UserPage() {
 
             {qrCode && (
               <div className="text-center mt-8">
-                <h3 className="text-2xl font-bold mb-4">Your Credential QR Code</h3>
+                <h3 className="text-2xl font-bold mb-4">
+                  Your Credential QR Code
+                </h3>
                 <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                  <img src={qrCode} alt="Credential QR Code" className="max-w-full" />
+                  <img
+                    src={qrCode}
+                    alt="Credential QR Code"
+                    className="max-w-full"
+                  />
                 </div>
-                <p className="mb-2">Show this QR code to verifiers to prove your credentials</p>
-                <small className="opacity-80">Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}</small>
+                <p className="mb-2">
+                  Show this QR code to verifiers to prove your credentials
+                </p>
+                <small className="opacity-80">
+                  Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </small>
               </div>
             )}
           </>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default UserPage
+export default UserPage;
