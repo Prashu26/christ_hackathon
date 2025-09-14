@@ -1,19 +1,20 @@
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const forge = require('node-forge');
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const forge = require("node-forge");
 
 class CryptoUtils {
   constructor() {
-    this.jwtSecret = process.env.JWT_SECRET || 'demo_jwt_secret_key_for_testing_only';
-    
+    this.jwtSecret =
+      process.env.JWT_SECRET || "demo_jwt_secret_key_for_testing_only";
+
     // Generate demo keys if environment variables are not set
     if (!process.env.PUBLIC_KEY || !process.env.PRIVATE_KEY) {
       const keypair = forge.pki.rsa.generateKeyPair(2048);
       this.publicKey = forge.pki.publicKeyToPem(keypair.publicKey);
       this.privateKey = forge.pki.privateKeyToPem(keypair.privateKey);
     } else {
-      this.publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, '\n');
-      this.privateKey = process.env.PRIVATE_KEY.replace(/\\n/g, '\n');
+      this.publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, "\n");
+      this.privateKey = process.env.PRIVATE_KEY.replace(/\\n/g, "\n");
     }
   }
 
@@ -22,8 +23,8 @@ class CryptoUtils {
     const payload = {
       ...credentialData,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour expiry
-      nonce: crypto.randomBytes(16).toString('hex')
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
+      nonce: crypto.randomBytes(16).toString("hex"),
     };
 
     return jwt.sign(payload, this.jwtSecret);
@@ -34,7 +35,7 @@ class CryptoUtils {
     try {
       return jwt.verify(token, this.jwtSecret);
     } catch (error) {
-      throw new Error('Invalid or expired token');
+      throw new Error("Invalid or expired token");
     }
   }
 
@@ -43,11 +44,11 @@ class CryptoUtils {
     try {
       const privateKey = forge.pki.privateKeyFromPem(this.privateKey);
       const md = forge.md.sha256.create();
-      md.update(JSON.stringify(data), 'utf8');
+      md.update(JSON.stringify(data), "utf8");
       const signature = privateKey.sign(md);
       return forge.util.encode64(signature);
     } catch (error) {
-      throw new Error('Failed to generate signature');
+      throw new Error("Failed to generate signature");
     }
   }
 
@@ -56,7 +57,7 @@ class CryptoUtils {
     try {
       const publicKey = forge.pki.publicKeyFromPem(this.publicKey);
       const md = forge.md.sha256.create();
-      md.update(JSON.stringify(data), 'utf8');
+      md.update(JSON.stringify(data), "utf8");
       const decodedSignature = forge.util.decode64(signature);
       return publicKey.verify(md.digest().bytes(), decodedSignature);
     } catch (error) {
@@ -66,7 +67,7 @@ class CryptoUtils {
 
   // Generate secure nonce
   generateNonce() {
-    return crypto.randomBytes(16).toString('hex');
+    return crypto.randomBytes(16).toString("hex");
   }
 
   // Validate expiry timestamp
@@ -75,4 +76,9 @@ class CryptoUtils {
   }
 }
 
-module.exports = new CryptoUtils();
+const instance = new CryptoUtils();
+// Alias for compatibility with routes/credentials.routes.js
+instance.signCredential = function (data) {
+  return this.generateOfflineSignature(data);
+};
+module.exports = instance;

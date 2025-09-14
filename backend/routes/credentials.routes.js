@@ -71,11 +71,26 @@ router.post("/generate", async (req, res) => {
     // For demo, use a random ID:
     const credentialId = cryptoUtils.generateNonce();
 
-    let qrData = {
-      credentialId,
-      mode,
-      verifyUrl: `${req.protocol}://${req.get("host")}/api/credentials/verify`,
-    };
+    let qrData;
+    if (mode === "offline") {
+      // Sign the credential data
+      const signature = cryptoUtils.signCredential(credentialData);
+      qrData = {
+        ...credentialData,
+        signature,
+        publicKey: cryptoUtils.publicKey,
+      };
+    } else {
+      // Online mode: just reference by credentialId
+      qrData = {
+        credentialId,
+        mode: "online",
+        type: credentialType,
+        timestamp: credentialData.timestamp,
+        expiresAt: credentialData.expiresAt,
+        // Optionally add more fields if needed
+      };
+    }
 
     // Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
@@ -223,7 +238,8 @@ router.get("/public-key", (req, res) => {
 const handleQRScan = async (scannedData) => {
   let data;
   try {
-    data = typeof scannedData === "string" ? JSON.parse(scannedData) : scannedData;
+    data =
+      typeof scannedData === "string" ? JSON.parse(scannedData) : scannedData;
   } catch (e) {
     setError("Invalid QR code data");
     return;
