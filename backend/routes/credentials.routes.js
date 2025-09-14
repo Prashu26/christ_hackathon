@@ -2,6 +2,7 @@ const express = require("express");
 const QRCode = require("qrcode");
 const cryptoUtils = require("../utils/crypto");
 const router = express.Router();
+const axios = require("axios");
 
 // Predefined credential types
 const CREDENTIAL_TYPES = {
@@ -47,39 +48,34 @@ router.post("/generate", async (req, res) => {
       });
     }
 
+    // Only pick the required fields for the selected credential type
+    const allowedFields = CREDENTIAL_TYPES[credentialType]?.fields || [];
+    const minimalUserData = {};
+    allowedFields.forEach((field) => {
+      if (userData[field] !== undefined) {
+        minimalUserData[field] = userData[field];
+      }
+    });
+
     const credentialData = {
       type: credentialType,
-      data: userData,
+      data: minimalUserData,
       timestamp: Date.now(),
       expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
       nonce: cryptoUtils.generateNonce(),
       mode: mode,
     };
 
-    let qrData;
+    // Save to DB (pseudo, implement your own DB logic)
+    // const savedCredential = await Credential.create(credentialData);
+    // For demo, use a random ID:
+    const credentialId = cryptoUtils.generateNonce();
 
-    if (mode === "offline") {
-      const signature = cryptoUtils.generateOfflineSignature(credentialData);
-
-      const publicKey = process.env.PUBLIC_KEY
-        ? process.env.PUBLIC_KEY.replace(/\\n/g, "\n")
-        : cryptoUtils.publicKey; // fallback from utils
-
-      qrData = {
-        ...credentialData,
-        signature,
-        publicKey,
-      };
-    } else {
-      const token = cryptoUtils.generateCredentialToken(credentialData);
-      qrData = {
-        token,
-        mode: "online",
-        verifyUrl: `${req.protocol}://${req.get(
-          "host"
-        )}/api/credentials/verify`,
-      };
-    }
+    let qrData = {
+      credentialId,
+      mode,
+      verifyUrl: `${req.protocol}://${req.get("host")}/api/credentials/verify`,
+    };
 
     // Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
@@ -109,9 +105,9 @@ router.post("/generate", async (req, res) => {
 });
 
 // Verify credential (Online mode - Verifier flow)
-router.post("/verify", (req, res) => {
+router.post("/verify", async (req, res) => {
   try {
-    const { token, scannedData } = req.body;
+    const { token, scannedData, credentialId } = req.body;
 
     let verificationResult = {
       isValid: false,
@@ -119,7 +115,27 @@ router.post("/verify", (req, res) => {
       errors: [],
     };
 
-    if (token) {
+    if (credentialId) {
+      // TODO: Replace this with your real DB lookup!
+      // Example: const credential = await Credential.findById(credentialId);
+      // For demo, just return a fake credential:
+      const credential = {
+        type: "Demo Credential",
+        mode: "online",
+        timestamp: Date.now() - 10000,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+        data: { example: "This is a demo credential loaded by ID." },
+      };
+
+      if (!credential) {
+        verificationResult.errors.push("Credential not found");
+      } else if (Date.now() > credential.expiresAt) {
+        verificationResult.errors.push("Credential has expired");
+      } else {
+        verificationResult.isValid = true;
+        verificationResult.credentialData = credential;
+      }
+    } else if (token) {
       // Online JWT verification
       try {
         const decoded = cryptoUtils.verifyCredentialToken(token);
@@ -202,5 +218,33 @@ router.get("/public-key", (req, res) => {
     });
   }
 });
+
+// Handle QR code scan (Client-side logic)
+const handleQRScan = async (scannedData) => {
+  let data;
+  try {
+    data = typeof scannedData === "string" ? JSON.parse(scannedData) : scannedData;
+  } catch (e) {
+    setError("Invalid QR code data");
+    return;
+  }
+
+  if (data.token || data.signature) {
+    // Existing logic for old QR format
+    // ...
+  } else if (data.credentialId && data.mode === "online") {
+    // New logic: fetch credential from backend using credentialId
+    try {
+      const response = await axios.post("/api/credentials/verify", {
+        credentialId: data.credentialId,
+      });
+      // handle response...
+    } catch (err) {
+      setError("Verification failed: " + err.message);
+    }
+  } else {
+    setError("Unknown credential format - missing mode or token");
+  }
+};
 
 module.exports = router;

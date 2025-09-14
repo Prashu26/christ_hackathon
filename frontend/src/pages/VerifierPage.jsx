@@ -66,40 +66,66 @@ function VerifierPage() {
     setScanning(false)
   }
 
-  const handleQRScan = async (qrData) => {
-    setLoading(true)
-    stopScanning()
-    
+  const handleQRScan = async (scannedData) => {
+    let data;
     try {
-      console.log('Raw QR data:', qrData)
-      
-      let parsedData
-      try {
-        parsedData = JSON.parse(qrData)
-        console.log('Parsed QR data:', parsedData)
-      } catch (e) {
-        console.error('JSON parse error:', e)
-        throw new Error('Invalid QR code format - not valid JSON')
-      }
+      data = typeof scannedData === "string" ? JSON.parse(scannedData) : scannedData;
+      console.log("Parsed QR data:", data);
+    } catch (e) {
+      setError("Invalid QR code data");
+      return;
+    }
 
-      if (parsedData.mode === 'offline') {
-        console.log('Processing offline credential')
-        await verifyOfflineCredential(parsedData)
-      } else if (parsedData.token) {
-        console.log('Processing online credential')
-        await verifyOnlineCredential(parsedData.token)
-      } else {
-        console.error('Unknown credential format:', parsedData)
-        throw new Error('Unknown credential format - missing mode or token')
+    if (data.token || data.signature) {
+      // Existing logic for old QR format
+      setLoading(true)
+      stopScanning()
+      
+      try {
+        console.log('Raw QR data:', scannedData)
+        
+        let parsedData
+        try {
+          parsedData = JSON.parse(scannedData)
+          console.log('Parsed QR data:', parsedData)
+        } catch (e) {
+          console.error('JSON parse error:', e)
+          throw new Error('Invalid QR code format - not valid JSON')
+        }
+
+        if (parsedData.mode === 'offline') {
+          console.log('Processing offline credential')
+          await verifyOfflineCredential(parsedData)
+        } else if (parsedData.token) {
+          console.log('Processing online credential')
+          await verifyOnlineCredential(parsedData.token)
+        } else {
+          console.error('Unknown credential format:', parsedData)
+          throw new Error('Unknown credential format - missing mode or token')
+        }
+      } catch (error) {
+        console.error('Verification error:', error)
+        setVerificationResult({
+          isValid: false,
+          errors: [error.message || 'Verification failed']
+        })
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Verification error:', error)
-      setVerificationResult({
-        isValid: false,
-        errors: [error.message || 'Verification failed']
-      })
-    } finally {
-      setLoading(false)
+    } else if (data.credentialId && data.mode === "online") {
+      // New logic: fetch credential from backend using credentialId
+      try {
+        const response = await axios.post("http://localhost:5000/api/credentials/verify", {
+          credentialId: data.credentialId,
+        });
+        // handle response...
+        setVerificationResult(response.data);
+        setError("");
+      } catch (err) {
+        setError("Verification failed: " + err.message);
+      }
+    } else {
+      setError("Unknown credential format - missing mode or token");
     }
   }
 
