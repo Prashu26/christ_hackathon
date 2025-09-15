@@ -7,10 +7,21 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate(); // For redirecting after logout
 
+  // Get user data to check if admin
+  let isAdmin = false;
+  try {
+    const user = JSON.parse(localStorage.getItem("userData"));
+    isAdmin = user && user.isAdmin;
+  } catch {}
+
   // Logout handler
   const handleLogout = () => {
     localStorage.removeItem("userData"); // Clear user data
-    navigate("/"); // Redirect to login page
+    // Remove any token if present
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    // Redirect admin to /, user to /
+    navigate("/");
   };
 
   return (
@@ -65,14 +76,16 @@ const Navbar = () => {
               Profile
             </Link>
 
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            {/* Logout Button (show only for admin) */}
+            {isAdmin && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -108,14 +121,16 @@ const Navbar = () => {
               Profile
             </Link>
 
-            {/* Mobile Logout */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            {/* Mobile Logout (show only for admin) */}
+            {isAdmin && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            )}
           </motion.div>
         )}
       </div>

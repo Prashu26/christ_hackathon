@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -186,6 +187,16 @@ const Admin = () => {
     exit: { opacity: 0, x: -100, transition: { duration: 0.3 } },
   };
 
+  const navigate = useNavigate();
+
+  // Admin logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    navigate("/");
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Sidebar */}
@@ -317,14 +328,12 @@ const Admin = () => {
         >
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-            <div className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors duration-200">
-              <img
-                src={userData.photo || "/default.svg"}
-                alt="Admin"
-                className="w-5 h-5 rounded-full object-cover"
-              />
-              <span className="font-semibold">Admin Access</span>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-bold shadow transition-colors duration-200"
+            >
+              <X className="w-5 h-5" /> Logout
+            </button>
           </div>
         </motion.div>
 

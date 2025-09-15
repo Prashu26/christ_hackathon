@@ -41,14 +41,25 @@ function AppContent() {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const isAdmin = userData.isAdmin;
 
+  // Redirect logic for signup page
+  let signupRedirect = null;
+  if (isSignupPage && userData && userData.email) {
+    // If already logged in, redirect to appropriate dashboard
+    signupRedirect = isAdmin ? (
+      <Navigate to="/admin" replace />
+    ) : (
+      <Navigate to="/profile" replace />
+    );
+  }
   return (
     <>
       {isAdmin ? null : isSignupPage ? <SimpleNavbar /> : <Navbar />}
+      {signupRedirect}
       <Routes>
         <Route path="/" element={<Signup />} />
         <Route
           path="/admin"
-          element={isAdmin ? <Admin /> : <Navigate to="/home" replace />} // Only admins can access
+          element={isAdmin ? <Admin /> : <Navigate to="/features" replace />} // Only admins can access
         />
         <Route
           path="/verify"
@@ -128,8 +139,8 @@ function AppContent() {
         {/* Add your other routes here */}
       </Routes>
       <Toaster />
-      {/* Show chatbot only for non-admin users */}
-      {!isAdmin && <ChatbotPopup />}
+  {/* Show chatbot only for non-admin users and not on signup page */}
+  {!isAdmin && !isSignupPage && <ChatbotPopup />}
       {/* Your Footer can go here */}
     </>
   );
