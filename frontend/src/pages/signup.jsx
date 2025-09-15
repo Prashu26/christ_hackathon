@@ -11,6 +11,8 @@ const Signup = () => {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [backendEmail, setBackendEmail] = useState(""); // store returned email from backend
+  const [otpAttempts, setOtpAttempts] = useState(20);
+  const [otpBlockedUntil, setOtpBlockedUntil] = useState(null);
   const navigate = useNavigate();
 
   const API_BASE_URL = "http://localhost:5000/api/v1/users";
@@ -21,6 +23,21 @@ const Signup = () => {
       toast.error("Please enter a valid 12-digit Aadhaar number.");
       return;
     }
+
+    // Check for block in localStorage
+    const blockKey = `otp_block_${aadhaarNumber}`;
+    const attemptsKey = `otp_attempts_${aadhaarNumber}`;
+    const blockedUntil = localStorage.getItem(blockKey);
+    if (blockedUntil && Date.now() < parseInt(blockedUntil, 10)) {
+      const mins = Math.ceil((parseInt(blockedUntil, 10) - Date.now()) / 60000);
+      toast.error(`Too many failed attempts. Try again in ${mins} min(s).`);
+      return;
+    }
+
+    // Reset attempts if not blocked
+    localStorage.setItem(attemptsKey, "20");
+    setOtpAttempts(20);
+    setOtpBlockedUntil(null);
 
     try {
       setIsLoading(true);
@@ -48,6 +65,26 @@ const Signup = () => {
       return;
     }
 
+    const blockKey = `otp_block_${aadhaarNumber}`;
+    const attemptsKey = `otp_attempts_${aadhaarNumber}`;
+    const blockedUntil = localStorage.getItem(blockKey);
+    if (blockedUntil && Date.now() < parseInt(blockedUntil, 10)) {
+      const mins = Math.ceil((parseInt(blockedUntil, 10) - Date.now()) / 60000);
+      toast.error(`Too many failed attempts. Try again in ${mins} min(s).`);
+      setOtpBlockedUntil(parseInt(blockedUntil, 10));
+      return;
+    }
+
+    let attemptsLeft = parseInt(localStorage.getItem(attemptsKey) || "20", 10);
+    if (attemptsLeft <= 0) {
+      // Block for 30 minutes
+      const blockUntil = Date.now() + 30 * 60 * 1000;
+      localStorage.setItem(blockKey, blockUntil.toString());
+      setOtpBlockedUntil(blockUntil);
+      toast.error("Too many failed attempts. You are blocked for 30 minutes.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await axios.post(`${API_BASE_URL}/login/otp/verify`, {
@@ -62,6 +99,12 @@ const Signup = () => {
       // Save user data to localStorage
       localStorage.setItem("userData", JSON.stringify(userData));
 
+      // Clear attempts on success
+      localStorage.removeItem(attemptsKey);
+      localStorage.removeItem(blockKey);
+      setOtpAttempts(20);
+      setOtpBlockedUntil(null);
+
       // Redirect based on isAdmin
       if (userData.isAdmin) {
         navigate("/admin"); // admin dashboard
@@ -69,8 +112,24 @@ const Signup = () => {
         navigate("/landing"); // regular user landing page
       }
     } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "OTP Verification failed.");
+      // Decrement attempts on failure
+      attemptsLeft = attemptsLeft - 1;
+      localStorage.setItem(attemptsKey, attemptsLeft.toString());
+      setOtpAttempts(attemptsLeft);
+      if (attemptsLeft <= 0) {
+        const blockUntil = Date.now() + 30 * 60 * 1000;
+        localStorage.setItem(blockKey, blockUntil.toString());
+        setOtpBlockedUntil(blockUntil);
+        toast.error(
+          "Too many failed attempts. You are blocked for 30 minutes."
+        );
+      } else {
+        toast.error(
+          (error.response?.data?.message || "OTP Verification failed.") +
+            ` (${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left)`
+        );
+      }
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -172,13 +231,28 @@ const Signup = () => {
                   placeholder="6-digit code"
                   className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
+                  disabled={otpBlockedUntil && Date.now() < otpBlockedUntil}
                 />
+              </div>
+              <div className="text-sm text-gray-500">
+                {otpBlockedUntil && Date.now() < otpBlockedUntil ? (
+                  <span className="text-red-500">
+                    Too many failed attempts. Try again in{" "}
+                    {Math.ceil((otpBlockedUntil - Date.now()) / 60000)} min(s).
+                  </span>
+                ) : (
+                  <span>
+                    {otpAttempts} attempt{otpAttempts === 1 ? "" : "s"} left
+                  </span>
+                )}
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                disabled={isLoading}
+                disabled={
+                  isLoading || (otpBlockedUntil && Date.now() < otpBlockedUntil)
+                }
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
               >
                 {isLoading ? "Verifying..." : "Verify & Login"}

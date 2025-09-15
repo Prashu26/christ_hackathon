@@ -554,16 +554,42 @@ const Admin = () => {
                       <p className="text-lg font-semibold text-white">
                         Insurance Request ID: {req.requestId}
                       </p>
-                      <p className="text-gray-400">Type: {req.insuranceType ? req.insuranceType.charAt(0).toUpperCase() + req.insuranceType.slice(1) : "N/A"}</p>
-                      <p className="text-gray-400">Coverage: ₹{req.coverage?.toLocaleString() || "N/A"}</p>
-                      <p className="text-gray-400">Premium: ₹{req.premium?.toLocaleString() || "N/A"}</p>
-                      <p className="text-gray-400">Status: {req.status ? req.status.charAt(0).toUpperCase() + req.status.slice(1) : "N/A"}</p>
-                      <p className="text-gray-400">Submitted: {req.submittedAt ? new Date(req.submittedAt).toLocaleDateString() : "N/A"}</p>
+                      <p className="text-gray-400">
+                        Type:{" "}
+                        {req.insuranceType
+                          ? req.insuranceType.charAt(0).toUpperCase() +
+                            req.insuranceType.slice(1)
+                          : "N/A"}
+                      </p>
+                      <p className="text-gray-400">
+                        Coverage: ₹{req.coverage?.toLocaleString() || "N/A"}
+                      </p>
+                      <p className="text-gray-400">
+                        Premium: ₹{req.premium?.toLocaleString() || "N/A"}
+                      </p>
+                      <p className="text-gray-400">
+                        Status:{" "}
+                        {req.status
+                          ? req.status.charAt(0).toUpperCase() +
+                            req.status.slice(1)
+                          : "N/A"}
+                      </p>
+                      <p className="text-gray-400">
+                        Submitted:{" "}
+                        {req.submittedAt
+                          ? new Date(req.submittedAt).toLocaleDateString()
+                          : "N/A"}
+                      </p>
                       {req.processedAt && (
-                        <p className="text-gray-400">Processed: {new Date(req.processedAt).toLocaleDateString()}</p>
+                        <p className="text-gray-400">
+                          Processed:{" "}
+                          {new Date(req.processedAt).toLocaleDateString()}
+                        </p>
                       )}
                       {req.adminNotes && (
-                        <p className="text-gray-400">Admin Notes: {req.adminNotes}</p>
+                        <p className="text-gray-400">
+                          Admin Notes: {req.adminNotes}
+                        </p>
                       )}
                       {/* View Documents Button */}
                       <div className="mt-4 flex flex-wrap gap-4">
@@ -601,14 +627,24 @@ const Admin = () => {
                       >
                         <X className="w-6 h-6" />
                       </button>
-                      <h3 className="text-xl font-bold text-white mb-4">User Uploaded Documents</h3>
-                      <p className="text-gray-400 mb-2">User: {currentDocsUser}</p>
+                      <h3 className="text-xl font-bold text-white mb-4">
+                        User Uploaded Documents
+                      </h3>
+                      <p className="text-gray-400 mb-2">
+                        User: {currentDocsUser}
+                      </p>
                       {currentDocs.length === 0 ? (
                         <p className="text-gray-400">No documents uploaded.</p>
                       ) : (
                         <ul className="space-y-3">
                           {currentDocs.map((doc, idx) => {
-                            const docUrl = typeof doc.url === 'string' && doc.url.trim() ? doc.url : (typeof doc.link === 'string' && doc.link.trim() ? doc.link : null);
+                            const docUrl =
+                              typeof doc.url === "string" && doc.url.trim()
+                                ? doc.url
+                                : typeof doc.link === "string" &&
+                                  doc.link.trim()
+                                ? doc.link
+                                : null;
                             return (
                               <li key={idx} className="flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-blue-400" />
@@ -622,7 +658,9 @@ const Admin = () => {
                                     {doc.name || `Document ${idx + 1}`}
                                   </a>
                                 ) : (
-                                  <span className="text-gray-400">{doc.name || `Document ${idx + 1}`}</span>
+                                  <span className="text-gray-400">
+                                    {doc.name || `Document ${idx + 1}`}
+                                  </span>
                                 )}
                               </li>
                             );
