@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -31,6 +32,7 @@ import {
 } from "lucide-react";
 
 const ContactSection = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("contact");
   const [formData, setFormData] = useState({
     name: "",
@@ -66,6 +68,12 @@ const ContactSection = () => {
   });
   const [copiedContact, setCopiedContact] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  // Open Send Email modal automatically if navigated with state { openSendEmail: true }
+  useEffect(() => {
+    if (location.state && location.state.openSendEmail) {
+      setShowEmailModal(true);
+    }
+  }, [location.state]);
   const [emailSupportMsg, setEmailSupportMsg] = useState("");
   const [emailSupportStatus, setEmailSupportStatus] = useState("idle"); // idle, sending, sent, error
   const storedUser =

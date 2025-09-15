@@ -7,7 +7,6 @@ const GEMINI_API_KEY =
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
-
 // Detailed system prompt for Gemini
 function buildSystemPrompt(user) {
   return `
@@ -34,8 +33,13 @@ Features:
 - Profile page to view all credentials and download documents.
 - Chatbot assistant for help and guidance.
 
+If a user has an issue or question that you cannot resolve, politely instruct them to go to the Contact page and use the Send Email feature. Tell them to type their query there, and inform them that their email will be sent to the admin, who will contact them soon.
+
+Example response if you cannot help:
+"I'm sorry, I can't resolve this issue directly. Please go to the Contact page and use the Send Email feature to describe your problem. Your message will be sent to the admin, and they will contact you soon."
+
 Example user details (if provided):
-${user ? JSON.stringify(user, null, 2) : '[No user details provided]'}
+${user ? JSON.stringify(user, null, 2) : "[No user details provided]"}
 
 Example prompts you can answer:
 - "How do I download my education certificate?"
@@ -44,6 +48,7 @@ Example prompts you can answer:
 - "How do I apply for a loan?"
 - "How do I control what data is in my QR code?"
 - "What is TrustPass?"
+- "I have a technical issue with my account" (respond with the Contact page/send email instructions)
 
 Never answer questions about admin, backend, or anything outside the website's features.
 `;

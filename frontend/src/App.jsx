@@ -4,6 +4,7 @@ import {
   Route,
   Link,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import SimpleNavbar from "./components/SimpleNavbar";
@@ -45,22 +46,84 @@ function AppContent() {
       {isAdmin ? null : isSignupPage ? <SimpleNavbar /> : <Navbar />}
       <Routes>
         <Route path="/" element={<Signup />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/verify" element={<Verify />} />
-        <Route path="/login-otp" element={<LoginWithOtp />} />
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/education" element={<Education />} />
-        <Route path="/demo" element={<DemoPage />} />
-        <Route path="/contact" element={<ContactSection />} />
-        <Route path="/generate-qr" element={<GenerateQR />} />
-        <Route path="/user" element={<UserPage />} />
-        <Route path="/verifier" element={<VerifierPage />} />
-        <Route path="/loan" element={<LoanPage />} />
-        <Route path="/insurance" element={<InsurancePage />} />
-        <Route path="/storage" element={<StoragePage />} />
+        <Route
+          path="/admin"
+          element={isAdmin ? <Admin /> : <Navigate to="/home" replace />} // Only admins can access
+        />
+        <Route
+          path="/verify"
+          element={!isAdmin ? <Verify /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/login-otp"
+          element={
+            !isAdmin ? <LoginWithOtp /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/landing"
+          element={
+            !isAdmin ? <LandingPage /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/home"
+          element={!isAdmin ? <HomePage /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/profile"
+          element={!isAdmin ? <Profile /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/features"
+          element={
+            !isAdmin ? <FeaturesPage /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/education"
+          element={!isAdmin ? <Education /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/demo"
+          element={!isAdmin ? <DemoPage /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/contact"
+          element={
+            !isAdmin ? <ContactSection /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/generate-qr"
+          element={!isAdmin ? <GenerateQR /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/user"
+          element={!isAdmin ? <UserPage /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/verifier"
+          element={
+            !isAdmin ? <VerifierPage /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/loan"
+          element={!isAdmin ? <LoanPage /> : <Navigate to="/admin" replace />}
+        />
+        <Route
+          path="/insurance"
+          element={
+            !isAdmin ? <InsurancePage /> : <Navigate to="/admin" replace />
+          }
+        />
+        <Route
+          path="/storage"
+          element={
+            !isAdmin ? <StoragePage /> : <Navigate to="/admin" replace />
+          }
+        />
         <Route path="/college-dashboard" element={<CollegeDashboard />} />
         {/* Add your other routes here */}
       </Routes>
