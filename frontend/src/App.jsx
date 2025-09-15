@@ -139,8 +139,8 @@ function AppContent() {
         {/* Add your other routes here */}
       </Routes>
       <Toaster />
-  {/* Show chatbot only for non-admin users and not on signup page */}
-  {!isAdmin && !isSignupPage && <ChatbotPopup />}
+      {/* Show chatbot only for non-admin users and not on signup page */}
+      {!isAdmin && !isSignupPage && <ChatbotPopup />}
       {/* Your Footer can go here */}
     </>
   );

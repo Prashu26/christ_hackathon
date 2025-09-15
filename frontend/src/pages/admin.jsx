@@ -26,6 +26,10 @@ const Admin = () => {
   const [pendingInsurance, setPendingInsurance] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("verifiers");
+  // Modal for viewing user-uploaded documents
+  const [showDocsModal, setShowDocsModal] = useState(false);
+  const [currentDocs, setCurrentDocs] = useState([]);
+  const [currentDocsUser, setCurrentDocsUser] = useState("");
 
   // user data state
   const [userData, setUserData] = useState({});
@@ -197,6 +201,21 @@ const Admin = () => {
     navigate("/");
   };
 
+  // Handler to open docs modal
+  const handleViewDocuments = (req) => {
+    // Assume req.documents is an array of { name, url } or similar
+    setCurrentDocs(req.documents || []);
+    setCurrentDocsUser(req.email || req.userEmail || "");
+    setShowDocsModal(true);
+  };
+
+  // Handler to close docs modal
+  const handleCloseDocsModal = () => {
+    setShowDocsModal(false);
+    setCurrentDocs([]);
+    setCurrentDocsUser("");
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Sidebar */}
@@ -209,13 +228,17 @@ const Admin = () => {
               className="w-full h-full object-cover"
             />
           </div>
-          <h2 className="mt-4 text-2xl font-bold text-white">{userData.name || "Admin Name"}</h2>
+          <h2 className="mt-4 text-2xl font-bold text-white">
+            {userData.name || "Admin Name"}
+          </h2>
           <p className="text-blue-400 font-medium">System Administrator</p>
         </div>
 
         {/* Sensitive Info Card */}
         <div className="bg-gray-700 rounded-xl shadow-lg p-6 mb-6 border border-gray-600 hover:bg-gray-650 transition-colors duration-200">
-          <h3 className="text-lg font-semibold mb-4 text-white">Sensitive Information</h3>
+          <h3 className="text-lg font-semibold mb-4 text-white">
+            Sensitive Information
+          </h3>
           <div className="space-y-4 text-gray-300">
             {/* Aadhaar */}
             <div className="flex items-center justify-between">
@@ -223,9 +246,20 @@ const Admin = () => {
                 <IdCard className="w-5 h-5" />
                 <span>Aadhaar</span>
               </div>
-              <span>{showDetails.aadhaar ? userData.aadhaarNumber?.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3') || "••••••••••" : "••••••••••"}</span>
+              <span>
+                {showDetails.aadhaar
+                  ? userData.aadhaarNumber?.replace(
+                      /(\d{4})(\d{4})(\d{4})/,
+                      "$1-$2-$3"
+                    ) || "••••••••••"
+                  : "••••••••••"}
+              </span>
               <button onClick={() => toggleDetail("aadhaar")}>
-                {showDetails.aadhaar ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showDetails.aadhaar ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
 
@@ -237,7 +271,11 @@ const Admin = () => {
               </div>
               <span>{showDetails.phone ? "+91 9876543210" : "••••••••••"}</span>
               <button onClick={() => toggleDetail("phone")}>
-                {showDetails.phone ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showDetails.phone ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
 
@@ -247,9 +285,17 @@ const Admin = () => {
                 <Mail className="w-5 h-5" />
                 <span>Email</span>
               </div>
-              <span>{showDetails.email ? userData.email || "••••••••••" : "••••••••••"}</span>
+              <span>
+                {showDetails.email
+                  ? userData.email || "••••••••••"
+                  : "••••••••••"}
+              </span>
               <button onClick={() => toggleDetail("email")}>
-                {showDetails.email ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showDetails.email ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
 
@@ -259,9 +305,18 @@ const Admin = () => {
                 <Calendar className="w-5 h-5" />
                 <span>DOB</span>
               </div>
-              <span>{showDetails.dob ? userData.dateOfBirth?.split('-').reverse().join('-') || "••••••••••" : "••••••••••"}</span>
+              <span>
+                {showDetails.dob
+                  ? userData.dateOfBirth?.split("-").reverse().join("-") ||
+                    "••••••••••"
+                  : "••••••••••"}
+              </span>
               <button onClick={() => toggleDetail("dob")}>
-                {showDetails.dob ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showDetails.dob ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
 
@@ -271,9 +326,15 @@ const Admin = () => {
                 <MapPin className="w-5 h-5" />
                 <span>Address</span>
               </div>
-              <span>{showDetails.address ? "Bengaluru, India" : "••••••••••"}</span>
+              <span>
+                {showDetails.address ? "Bengaluru, India" : "••••••••••"}
+              </span>
               <button onClick={() => toggleDetail("address")}>
-                {showDetails.address ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showDetails.address ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
@@ -384,7 +445,9 @@ const Admin = () => {
           >
             {activeTab === "verifiers" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-blue-400">Verifier Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-blue-400">
+                  Verifier Requests
+                </h2>
                 {pendingRequests.length === 0 ? (
                   <p className="text-gray-400">No pending verifier requests.</p>
                 ) : (
@@ -396,11 +459,17 @@ const Admin = () => {
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-white">{req.email}</p>
-                      <p className="text-gray-400">Request ID: {req.requestId}</p>
+                      <p className="text-lg font-semibold text-white">
+                        {req.email}
+                      </p>
+                      <p className="text-gray-400">
+                        Request ID: {req.requestId}
+                      </p>
                       <div className="mt-4 flex space-x-4">
                         <button
-                          onClick={() => handleApprove(req.requestId, req.email)}
+                          onClick={() =>
+                            handleApprove(req.requestId, req.email)
+                          }
                           disabled={isLoading}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
                         >
@@ -422,7 +491,9 @@ const Admin = () => {
 
             {activeTab === "loans" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-green-400">Loan Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-green-400">
+                  Loan Requests
+                </h2>
                 {pendingLoans.length === 0 ? (
                   <p className="text-gray-400">No pending loan requests.</p>
                 ) : (
@@ -434,8 +505,12 @@ const Admin = () => {
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-white">Loan Request ID: {req.requestId}</p>
-                      <p className="text-gray-400">Amount: {req.amount || "N/A"}</p>
+                      <p className="text-lg font-semibold text-white">
+                        Loan Request ID: {req.requestId}
+                      </p>
+                      <p className="text-gray-400">
+                        Amount: {req.amount || "N/A"}
+                      </p>
                       <div className="mt-4 flex space-x-4">
                         <button
                           onClick={() => handleApproveLoan(req.requestId)}
@@ -460,9 +535,13 @@ const Admin = () => {
 
             {activeTab === "insurance" && (
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-purple-400">Insurance Requests</h2>
+                <h2 className="text-2xl font-bold mb-6 text-purple-400">
+                  Insurance Requests
+                </h2>
                 {pendingInsurance.length === 0 ? (
-                  <p className="text-gray-400">No pending insurance requests.</p>
+                  <p className="text-gray-400">
+                    No pending insurance requests.
+                  </p>
                 ) : (
                   pendingInsurance.map((req) => (
                     <motion.div
@@ -472,9 +551,22 @@ const Admin = () => {
                       initial="hidden"
                       animate="visible"
                     >
-                      <p className="text-lg font-semibold text-white">Insurance Request ID: {req.requestId}</p>
-                      <p className="text-gray-400">Type: {req.type || "N/A"}</p>
-                      <div className="mt-4 flex space-x-4">
+                      <p className="text-lg font-semibold text-white">
+                        Insurance Request ID: {req.requestId}
+                      </p>
+                      <p className="text-gray-400">Type: {req.insuranceType ? req.insuranceType.charAt(0).toUpperCase() + req.insuranceType.slice(1) : "N/A"}</p>
+                      <p className="text-gray-400">Coverage: ₹{req.coverage?.toLocaleString() || "N/A"}</p>
+                      <p className="text-gray-400">Premium: ₹{req.premium?.toLocaleString() || "N/A"}</p>
+                      <p className="text-gray-400">Status: {req.status ? req.status.charAt(0).toUpperCase() + req.status.slice(1) : "N/A"}</p>
+                      <p className="text-gray-400">Submitted: {req.submittedAt ? new Date(req.submittedAt).toLocaleDateString() : "N/A"}</p>
+                      {req.processedAt && (
+                        <p className="text-gray-400">Processed: {new Date(req.processedAt).toLocaleDateString()}</p>
+                      )}
+                      {req.adminNotes && (
+                        <p className="text-gray-400">Admin Notes: {req.adminNotes}</p>
+                      )}
+                      {/* View Documents Button */}
+                      <div className="mt-4 flex flex-wrap gap-4">
                         <button
                           onClick={() => handleApproveInsurance(req.requestId)}
                           disabled={isLoading}
@@ -489,9 +581,56 @@ const Admin = () => {
                         >
                           {isLoading ? "Rejecting..." : "Reject"}
                         </button>
+                        <button
+                          onClick={() => handleViewDocuments(req)}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                        >
+                          View Documents
+                        </button>
                       </div>
                     </motion.div>
                   ))
+                )}
+                {/* Modal for viewing user-uploaded documents */}
+                {showDocsModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                    <div className="bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-lg border border-gray-700 relative">
+                      <button
+                        onClick={handleCloseDocsModal}
+                        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
+                      <h3 className="text-xl font-bold text-white mb-4">User Uploaded Documents</h3>
+                      <p className="text-gray-400 mb-2">User: {currentDocsUser}</p>
+                      {currentDocs.length === 0 ? (
+                        <p className="text-gray-400">No documents uploaded.</p>
+                      ) : (
+                        <ul className="space-y-3">
+                          {currentDocs.map((doc, idx) => {
+                            const docUrl = typeof doc.url === 'string' && doc.url.trim() ? doc.url : (typeof doc.link === 'string' && doc.link.trim() ? doc.link : null);
+                            return (
+                              <li key={idx} className="flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-blue-400" />
+                                {docUrl ? (
+                                  <a
+                                    href={docUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-400 hover:underline break-all"
+                                  >
+                                    {doc.name || `Document ${idx + 1}`}
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-400">{doc.name || `Document ${idx + 1}`}</span>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             )}

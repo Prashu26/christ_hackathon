@@ -77,7 +77,7 @@ const Navbar = () => {
             </Link>
 
             {/* Logout Button (show only for admin) */}
-            {isAdmin && (
+            {!isAdmin && (
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
