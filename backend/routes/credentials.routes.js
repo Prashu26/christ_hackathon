@@ -19,7 +19,15 @@ const CREDENTIAL_TYPES = {
   EDUCATION: {
     name: "Education Certificate",
     description: "Academic qualification proof",
-    fields: ["degree", "institution", "graduationYear"],
+    fields: [
+      "degree",
+      "institution",
+      "graduationYear",
+      "marksOrCgpa",
+      "issuedTo",
+      "aadhaarNumber",
+      "issueDate",
+    ],
   },
   EMPLOYMENT: {
     name: "Employment Verification",

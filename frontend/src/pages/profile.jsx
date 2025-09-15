@@ -55,9 +55,7 @@ const ProfileSection = () => {
               new Date(user.dateOfBirth).getFullYear()
             : "",
           photo: user.photo || "",
-          verificationLevel: user.verified
-            ? "Level 3 Verified"
-            : "Unverified",
+          verificationLevel: user.verified ? "Level 3 Verified" : "Unverified",
           digitalIdNumber: `DID:2025:IND:$${
             user.aadhaarNumber?.slice(-4) || "0000"
           }`,
@@ -113,8 +111,13 @@ const ProfileSection = () => {
     </button>
   );
 
-  if (loading) return <p className="text-white text-center">Loading profile...</p>;
-  if (!profileData) return <p className="text-white text-center">User not found</p>;
+  // Get education certificates from storedUser (updated after fetch)
+  const educationCertificates = storedUser.educationCertificates || [];
+
+  if (loading)
+    return <p className="text-white text-center">Loading profile...</p>;
+  if (!profileData)
+    return <p className="text-white text-center">User not found</p>;
 
   return (
     <div className="min-h-screen bg-black text-white p-8 pt-20 font-sans">
@@ -126,8 +129,53 @@ const ProfileSection = () => {
         <p className="text-gray-400">Inspired by Spotify • Secure • Private</p>
       </div>
 
+      {/* Education Certificates */}
+      {educationCertificates.length > 0 && (
+        <div className="bg-[#181818] rounded-2xl p-6 shadow-md mt-10">
+          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <span role="img" aria-label="certificate">
+              🎓
+            </span>{" "}
+            Education Certificates
+          </h3>
+          <div className="space-y-4">
+            {educationCertificates.map((cert, idx) => (
+              <div key={idx} className="bg-[#232323] rounded-xl p-4">
+                <div className="font-bold text-lg text-green-300">
+                  {cert.certificateName}
+                </div>
+                <div className="text-sm text-gray-300 mb-1">
+                  Issued by: {cert.issuedBy}
+                </div>
+                <div className="text-xs text-gray-400 mb-1">
+                  Issued on:{" "}
+                  {cert.issueDate
+                    ? new Date(cert.issueDate).toLocaleDateString()
+                    : "-"}
+                </div>
+                {cert.details && (
+                  <>
+                    <div className="text-white mt-1">{cert.details}</div>
+                    {cert.pdfUrl && (
+                      <a
+                        href={`http://localhost:5000${cert.pdfUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-3 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold text-sm hover:opacity-90"
+                      >
+                        Download PDF
+                      </a>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Profile Card */}
-      <div className="bg-[#121212] rounded-3xl shadow-2xl overflow-hidden max-w-5xl mx-auto">
+      <div className="bg-[#121212] rounded-3xl shadow-2xl overflow-hidden max-w-5xl mx-auto mt-10">
         {/* Top Section */}
         <div className="bg-gradient-to-r from-green-600/60 to-emerald-700/40 p-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -204,7 +252,10 @@ const ProfileSection = () => {
                       value={profileData.name}
                       readOnly={!isEditing}
                       onChange={(e) =>
-                        setProfileData((prev) => ({ ...prev, name: e.target.value }))
+                        setProfileData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
                       }
                       className="flex-1 bg-transparent outline-none text-white font-medium"
                     />

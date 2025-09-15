@@ -12,6 +12,8 @@ function UserPage() {
   const [qrCode, setQrCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldToggles, setFieldToggles] = useState({});
+
   const storedUser = JSON.parse(localStorage.getItem("userData"));
 
   // helper to calculate age
@@ -48,16 +50,19 @@ function UserPage() {
       const response = await axios.get(
         "http://localhost:5000/api/credentials/types"
       );
-      setCredentialTypes(response.data.credentialTypes);
+      setCredentialTypes(response.data.credentialTypes || {});
     } catch (error) {
       console.error("Error fetching credential types:", error);
       setError("Failed to load credential types.");
     }
   };
 
-  // don’t reset userData completely, just change type
   const handleTypeChange = (type) => {
-    setSelectedType(type);
+    if (type.toLowerCase().includes("educationcertificate")) {
+      setSelectedType("EDUCATION");
+    } else {
+      setSelectedType(type);
+    }
     setQrCode("");
     setError("");
   };
@@ -69,17 +74,79 @@ function UserPage() {
     }));
   };
 
+  // Helper: get issued education certificate (if any)
+  const issuedEduCert =
+    storedUser &&
+    storedUser.educationCertificates &&
+    storedUser.educationCertificates.length > 0
+      ? storedUser.educationCertificates[
+          storedUser.educationCertificates.length - 1
+        ]
+      : null;
+
   const generateQRCode = async () => {
-    if (!selectedType || Object.keys(userData).length === 0) {
-      setError(
-        "Please select a credential type and fill in all required fields"
-      );
+    if (!selectedType) {
+      setError("Please select a credential type");
       return;
     }
 
+    // Education Certificate QR
+    if (selectedType === "EDUCATION") {
+      if (!issuedEduCert && Object.keys(userData).length === 0) {
+        setError("Please enter your education details.");
+        return;
+      }
+
+      // Map frontend fields to backend fields for EDUCATION
+      const eduFieldMap = {
+        certificateName: "degree",
+        clgName: "institution",
+        details: "graduationYear",
+        marksOrCgpa: "marksOrCgpa",
+        issuedTo: "issuedTo",
+        aadhaarNumber: "aadhaarNumber",
+        issueDate: "issueDate",
+      };
+      const qrData = {};
+      const source = issuedEduCert || userData;
+      Object.entries(eduFieldMap).forEach(([frontendKey, backendKey]) => {
+        if (fieldToggles[frontendKey] !== false && source[frontendKey]) {
+          qrData[backendKey] = source[frontendKey];
+        }
+      });
+
+      setLoading(true);
+      setError("");
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/credentials/generate",
+          {
+            credentialType: selectedType,
+            userData: qrData,
+            mode: mode,
+          }
+        );
+        if (response.data.success) {
+          setQrCode(response.data.qrCode);
+        } else {
+          setError("Failed to generate QR code");
+        }
+      } catch (error) {
+        console.error("Error generating QR code:", error);
+        setError("Failed to generate QR code");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Default for other types
+    if (Object.keys(userData).length === 0) {
+      setError("Please fill in all required fields");
+      return;
+    }
     setLoading(true);
     setError("");
-
     try {
       const response = await axios.post(
         "http://localhost:5000/api/credentials/generate",
@@ -89,7 +156,6 @@ function UserPage() {
           mode: mode,
         }
       );
-
       if (response.data.success) {
         setQrCode(response.data.qrCode);
       } else {
@@ -104,10 +170,84 @@ function UserPage() {
   };
 
   const renderFormFields = () => {
-    if (!selectedType || !credentialTypes[selectedType]) return null;
+    if (!selectedType) return null;
 
+    // Hardcoded education certificate fields (with extra info)
+    const eduFields = [
+      { key: "certificateName", label: "Degree", placeholder: "Enter degree" },
+      {
+        key: "clgName",
+        label: "Institution",
+        placeholder: "Enter institution",
+      },
+      {
+        key: "details",
+        label: "Graduation Year",
+        placeholder: "Enter graduation year",
+      },
+      {
+        key: "marksOrCgpa",
+        label: "Marks/CGPA",
+        placeholder: "Enter marks or CGPA",
+      },
+      { key: "issuedTo", label: "Issued To", placeholder: "Student name" },
+      {
+        key: "aadhaarNumber",
+        label: "Aadhaar Number",
+        placeholder: "Aadhaar number",
+      },
+      { key: "issueDate", label: "Issued Date", placeholder: "Issued date" },
+    ];
+
+    if (selectedType === "EDUCATION") {
+      if (!issuedEduCert) {
+        return (
+          <div className="mb-6 text-center text-red-300 font-semibold">
+            There is no issued document from your college.
+          </div>
+        );
+      }
+      return eduFields.map((f) => {
+        // Special formatting for issued date
+        let value = issuedEduCert[f.key] || "";
+        if (f.key === "issueDate" && value) {
+          value = new Date(value).toLocaleDateString();
+        }
+        return (
+          <div key={f.key} className="mb-6 flex items-center gap-4">
+            <label className="block mb-2 font-medium text-white w-40">
+              {f.label}
+            </label>
+            <input
+              type="text"
+              className="w-full p-3 border border-white/30 rounded-lg bg-white/20 text-white"
+              value={value}
+              readOnly
+            />
+            {/* Allow toggling for all fields */}
+            <>
+              <input
+                type="checkbox"
+                className="ml-2"
+                checked={fieldToggles[f.key] !== false}
+                onChange={() =>
+                  setFieldToggles((t) => ({
+                    ...t,
+                    [f.key]: !(t[f.key] !== false),
+                  }))
+                }
+                title="Include in QR code"
+              />
+              <span className="text-xs text-white/70">Show in QR</span>
+            </>
+          </div>
+        );
+      });
+    }
+
+    // Default fields (for all other credential types)
+    if (!credentialTypes[selectedType]) return null;
     const fields = credentialTypes[selectedType].fields;
-
     return fields.map((field) => (
       <div key={field} className="mb-6">
         <label className="block mb-2 font-medium text-white">
@@ -140,7 +280,7 @@ function UserPage() {
           <input
             type="text"
             className="w-full p-3 border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-            placeholder={`Enter ${field}`} // ✅ FIXED
+            placeholder={`Enter ${field}`}
             value={userData[field] || ""}
             onChange={(e) => handleInputChange(field, e.target.value)}
           />

@@ -31,7 +31,7 @@ const loanApprovalSchema = new mongoose.Schema({
   },
   submittedAt: { type: Date, default: Date.now },
   processedAt: { type: Date },
-  adminNotes: { type: String }
+  adminNotes: { type: String },
 });
 
 const insuranceApprovalSchema = new mongoose.Schema({
@@ -42,7 +42,7 @@ const insuranceApprovalSchema = new mongoose.Schema({
   personalInfo: {
     age: Number,
     occupation: String,
-    healthConditions: String
+    healthConditions: String,
   },
   documents: [{ type: String }], // Document IDs from storage
   status: {
@@ -52,7 +52,21 @@ const insuranceApprovalSchema = new mongoose.Schema({
   },
   submittedAt: { type: Date, default: Date.now },
   processedAt: { type: Date },
-  adminNotes: { type: String }
+  adminNotes: { type: String },
+});
+
+const educationCertificateSchema = new mongoose.Schema({
+  certificateName: { type: String, required: true },
+  issuedBy: { type: String, required: true }, // College/University name
+  issuedTo: { type: String, required: true }, // Student name
+  aadhaarNumber: { type: String, required: true },
+  marksOrCgpa: { type: String }, // marks or CGPA
+  clgName: { type: String }, // College name (redundant for clarity)
+  issueDate: { type: Date, default: Date.now },
+  details: { type: String }, // e.g., degree, year, etc.
+  pdfUrl: { type: String },
+  publicKey: { type: String },
+  signature: { type: String },
 });
 
 const userSchema = new mongoose.Schema({
@@ -67,6 +81,7 @@ const userSchema = new mongoose.Schema({
   verificationRequests: [verificationFormSchema],
   loanRequests: [loanApprovalSchema],
   insuranceRequests: [insuranceApprovalSchema],
+  educationCertificates: [educationCertificateSchema],
 });
 
 module.exports = mongoose.model("User", userSchema);

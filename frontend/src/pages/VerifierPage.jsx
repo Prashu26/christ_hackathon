@@ -220,6 +220,17 @@ function VerifierPage() {
 
     const { isValid, credentialData, errors } = verificationResult;
 
+    // Education credential pretty display
+    const eduFieldLabels = {
+      degree: "Degree",
+      institution: "Institution",
+      graduationYear: "Graduation Year",
+      marksOrCgpa: "Marks/CGPA",
+      issuedTo: "Issued To",
+      aadhaarNumber: "Aadhaar Number",
+      issueDate: "Issued Date",
+    };
+
     return (
       <div
         className={`mt-8 p-6 rounded-xl text-center ${
@@ -267,7 +278,31 @@ function VerifierPage() {
               {new Date(credentialData.expiresAt).toLocaleString()}
             </p>
 
-            {credentialData.data && (
+            {/* Pretty print education credential fields if present */}
+            {credentialData.type === "EDUCATION" && credentialData.data && (
+              <div className="mt-4">
+                <strong>Data:</strong>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                  {Object.entries(eduFieldLabels).map(([key, label]) =>
+                    key in credentialData.data ? (
+                      <div key={key} className="flex flex-col mb-2">
+                        <span className="text-sm text-white/70">{label}</span>
+                        <span className="font-semibold text-white">
+                          {key === "issueDate"
+                            ? new Date(
+                                credentialData.data[key]
+                              ).toLocaleDateString()
+                            : credentialData.data[key]}
+                        </span>
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback for other types or if not education */}
+            {credentialData.type !== "EDUCATION" && credentialData.data && (
               <div className="mt-4">
                 <strong>Data:</strong>
                 <pre className="bg-black/20 p-2 rounded text-sm mt-2 overflow-auto">

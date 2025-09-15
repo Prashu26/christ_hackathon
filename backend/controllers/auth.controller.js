@@ -99,6 +99,7 @@ exports.verifyLoginOtp = async (req, res, next) => {
         verified: user.verified,
         isAdmin: user.isAdmin,
         verificationRequests: user.verificationRequests || [],
+        educationCertificates: user.educationCertificates || [],
       };
 
       res.status(200).json({
