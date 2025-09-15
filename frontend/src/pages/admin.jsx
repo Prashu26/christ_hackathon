@@ -497,7 +497,10 @@ const Admin = () => {
                 {pendingLoans.length === 0 ? (
                   <p className="text-gray-400">No pending loan requests.</p>
                 ) : (
-                  pendingLoans.map((req) => (
+                  pendingLoans.map((req) => {
+                    // Print the full user details for debugging
+                    console.log('Loan User Details:', req);
+                    return (
                     <motion.div
                       key={req.requestId}
                       className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
@@ -508,9 +511,32 @@ const Admin = () => {
                       <p className="text-lg font-semibold text-white">
                         Loan Request ID: {req.requestId}
                       </p>
-                      <p className="text-gray-400">
-                        Amount: {req.amount || "N/A"}
-                      </p>
+                      <p className="text-gray-400">Amount: {req.amount || "N/A"}</p>
+                      {/* User Details */}
+                      <div className="mt-2 mb-2 p-3 rounded-lg bg-gray-800 border border-gray-600">
+                        <p className="text-gray-300 font-semibold mb-1">User Details:</p>
+                        <p className="text-gray-400 text-sm">
+                          <User className="inline w-4 h-4 mr-1" /> Name: {req.name || "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <Mail className="inline w-4 h-4 mr-1" /> Email: {req.email || "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <Shield className="inline w-4 h-4 mr-1" /> Employment Type: {req.employmentType || "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <DollarSign className="inline w-4 h-4 mr-1" /> Income: {req.income ? `₹${req.income}` : "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <CreditCard className="inline w-4 h-4 mr-1" /> Loan Type: {req.loanType || "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <FileText className="inline w-4 h-4 mr-1" /> Purpose: {req.purpose || "N/A"}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          <Calendar className="inline w-4 h-4 mr-1" /> Submitted: {req.submittedAt ? new Date(req.submittedAt).toLocaleString() : "N/A"}
+                        </p>
+                      </div>
                       <div className="mt-4 flex space-x-4">
                         <button
                           onClick={() => handleApproveLoan(req.requestId)}
@@ -528,7 +554,8 @@ const Admin = () => {
                         </button>
                       </div>
                     </motion.div>
-                  ))
+                  );
+                  })
                 )}
               </div>
             )}
