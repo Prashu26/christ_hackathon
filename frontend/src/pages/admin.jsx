@@ -1,4 +1,120 @@
 import React, { useState, useEffect } from "react";
+import { Line, Pie, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+// Admin Dashboard Charts Component
+const AdminDashboardCharts = ({ requestsData }) => {
+  // Simulate data for the last 7 days
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  });
+
+  // Simulated data (replace with real API data as needed)
+  const requestsPerDay = [5, 8, 6, 10, 7, 12, 9];
+  const acceptedPerDay = [2, 5, 4, 7, 5, 9, 7];
+  const totalRequests = 5 + 8 + 6 + 10 + 7 + 12 + 9;
+  const totalAccepted = 2 + 5 + 4 + 7 + 5 + 9 + 7;
+  const totalRejected = totalRequests - totalAccepted;
+  const typeCounts = {
+    Verifier: 15,
+    Loan: 20,
+    Insurance: 22,
+  };
+
+  // 1. Line Chart: Requests vs Accepted per day
+  const lineData = {
+    labels: days,
+    datasets: [
+      {
+        label: 'Requests',
+        data: requestsPerDay,
+        borderColor: 'rgba(59,130,246,1)',
+        backgroundColor: 'rgba(59,130,246,0.2)',
+        tension: 0.4,
+      },
+      {
+        label: 'Accepted',
+        data: acceptedPerDay,
+        borderColor: 'rgba(16,185,129,1)',
+        backgroundColor: 'rgba(16,185,129,0.2)',
+        tension: 0.4,
+      },
+    ],
+  };
+
+  // 2. Pie Chart: Request Types
+  const pieData = {
+    labels: Object.keys(typeCounts),
+    datasets: [
+      {
+        data: Object.values(typeCounts),
+        backgroundColor: [
+          'rgba(59,130,246,0.7)',
+          'rgba(16,185,129,0.7)',
+          'rgba(168,85,247,0.7)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // 3. Bar Chart: Accepted vs Rejected
+  const barData = {
+    labels: ['Accepted', 'Rejected'],
+    datasets: [
+      {
+        label: 'Requests',
+        data: [totalAccepted, totalRejected],
+        backgroundColor: [
+          'rgba(16,185,129,0.7)',
+          'rgba(239,68,68,0.7)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+      <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h3 className="text-lg font-semibold text-white mb-4">Requests vs Accepted (Last 7 Days)</h3>
+        <Line data={lineData} options={{ responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }} />
+      </div>
+      <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h3 className="text-lg font-semibold text-white mb-4">Request Types</h3>
+        <Pie data={pieData} options={{ responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }} />
+      </div>
+      <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h3 className="text-lg font-semibold text-white mb-4">Accepted vs Rejected</h3>
+        <Bar data={barData} options={{ responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }} />
+      </div>
+    </div>
+  );
+};
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -342,8 +458,18 @@ const Admin = () => {
 
         {/* Requests Section */}
         <div className="bg-gray-700 rounded-xl shadow-lg p-6 border border-gray-600">
-          <h3 className="text-lg font-semibold mb-4 text-white">Requests</h3>
+          <h3 className="text-lg font-semibold mb-4 text-white">Menu</h3>
           <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`w-full text-left py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                activeTab === "dashboard"
+                  ? "bg-yellow-600 text-white shadow-lg ring-2 ring-yellow-400"
+                  : "text-gray-300 hover:bg-gray-600 hover:text-white"
+              }`}
+            >
+              Dashboard
+            </button>
             <button
               onClick={() => setActiveTab("verifiers")}
               className={`w-full text-left py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
@@ -380,7 +506,9 @@ const Admin = () => {
 
       {/* Main Content */}
       <div className="flex-1 p-8">
-        {/* Header */}
+  {/* Show dashboard charts only if dashboard tab is active */}
+  {activeTab === "dashboard" && <AdminDashboardCharts />}
+  {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -499,62 +627,76 @@ const Admin = () => {
                 ) : (
                   pendingLoans.map((req) => {
                     // Print the full user details for debugging
-                    console.log('Loan User Details:', req);
+                    console.log("Loan User Details:", req);
                     return (
-                    <motion.div
-                      key={req.requestId}
-                      className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      <p className="text-lg font-semibold text-white">
-                        Loan Request ID: {req.requestId}
-                      </p>
-                      <p className="text-gray-400">Amount: {req.amount || "N/A"}</p>
-                      {/* User Details */}
-                      <div className="mt-2 mb-2 p-3 rounded-lg bg-gray-800 border border-gray-600">
-                        <p className="text-gray-300 font-semibold mb-1">User Details:</p>
-                        <p className="text-gray-400 text-sm">
-                          <User className="inline w-4 h-4 mr-1" /> Name: {req.name || "N/A"}
+                      <motion.div
+                        key={req.requestId}
+                        className="bg-gray-700 p-6 rounded-lg shadow-lg mb-4 border border-gray-600 hover:bg-gray-650 transition-colors duration-200"
+                        variants={cardVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        <p className="text-lg font-semibold text-white">
+                          Loan Request ID: {req.requestId}
                         </p>
-                        <p className="text-gray-400 text-sm">
-                          <Mail className="inline w-4 h-4 mr-1" /> Email: {req.email || "N/A"}
+                        <p className="text-gray-400">
+                          Amount: {req.amount || "N/A"}
                         </p>
-                        <p className="text-gray-400 text-sm">
-                          <Shield className="inline w-4 h-4 mr-1" /> Employment Type: {req.employmentType || "N/A"}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          <DollarSign className="inline w-4 h-4 mr-1" /> Income: {req.income ? `₹${req.income}` : "N/A"}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          <CreditCard className="inline w-4 h-4 mr-1" /> Loan Type: {req.loanType || "N/A"}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          <FileText className="inline w-4 h-4 mr-1" /> Purpose: {req.purpose || "N/A"}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          <Calendar className="inline w-4 h-4 mr-1" /> Submitted: {req.submittedAt ? new Date(req.submittedAt).toLocaleString() : "N/A"}
-                        </p>
-                      </div>
-                      <div className="mt-4 flex space-x-4">
-                        <button
-                          onClick={() => handleApproveLoan(req.requestId)}
-                          disabled={isLoading}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
-                        >
-                          {isLoading ? "Approving..." : "Approve"}
-                        </button>
-                        <button
-                          onClick={() => handleRejectLoan(req.requestId)}
-                          disabled={isLoading}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors duration-200"
-                        >
-                          {isLoading ? "Rejecting..." : "Reject"}
-                        </button>
-                      </div>
-                    </motion.div>
-                  );
+                        {/* User Details */}
+                        <div className="mt-2 mb-2 p-3 rounded-lg bg-gray-800 border border-gray-600">
+                          <p className="text-gray-300 font-semibold mb-1">
+                            User Details:
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <User className="inline w-4 h-4 mr-1" /> Name:{" "}
+                            {req.name || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <Mail className="inline w-4 h-4 mr-1" /> Email:{" "}
+                            {req.email || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <Shield className="inline w-4 h-4 mr-1" />{" "}
+                            Employment Type: {req.employmentType || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <DollarSign className="inline w-4 h-4 mr-1" />{" "}
+                            Income: {req.income ? `₹${req.income}` : "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <CreditCard className="inline w-4 h-4 mr-1" /> Loan
+                            Type: {req.loanType || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <FileText className="inline w-4 h-4 mr-1" />{" "}
+                            Purpose: {req.purpose || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <Calendar className="inline w-4 h-4 mr-1" />{" "}
+                            Submitted:{" "}
+                            {req.submittedAt
+                              ? new Date(req.submittedAt).toLocaleString()
+                              : "N/A"}
+                          </p>
+                        </div>
+                        <div className="mt-4 flex space-x-4">
+                          <button
+                            onClick={() => handleApproveLoan(req.requestId)}
+                            disabled={isLoading}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
+                          >
+                            {isLoading ? "Approving..." : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => handleRejectLoan(req.requestId)}
+                            disabled={isLoading}
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors duration-200"
+                          >
+                            {isLoading ? "Rejecting..." : "Reject"}
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
                   })
                 )}
               </div>
